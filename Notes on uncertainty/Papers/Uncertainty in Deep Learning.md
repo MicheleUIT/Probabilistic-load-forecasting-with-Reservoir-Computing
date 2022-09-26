@@ -45,14 +45,11 @@ $$
 Problem: being able to solve analytically $p(Y|X)=\int p(Y|X,\omega)p(\omega)d\omega$ is not often possible.
 
 ## Variational inference
-
-^1595b1
-
 You approximate the true posterior with a simpler variational distribution $p(\omega|X,Y)\simeq q_\theta(\omega)$, and minimize the KL divergence w.r.t. $\theta$ 
 $$
-	\text{KL}(q_\theta(\omega)||p(\omega|X,Y))=\int q_\theta\log\frac{q_\theta(\omega)}{p(\omega|X,Y)}d\omega
+	\text{KL}(q_\theta(\omega)||p(\omega|X,Y))=\int q_\theta(\omega)\log\frac{q_\theta(\omega)}{p(\omega|X,Y)}d\omega
 $$
-An equivalent (why?) approach is maximizing the *evidence lower bound* (ELB)
+An equivalent (proved below) approach is maximizing the *evidence lower bound* (ELBO)
 $$
 	\begin{align*}
 	\mathcal{L}_{\text{VI}}(\theta):=\mathcal{L}_\text{LL}-\text{KL}(q_\theta(\omega)||p(\omega)) \\
@@ -62,6 +59,15 @@ $$
 where:
 - $\mathcal{L}_\text{LL}$ is the expected log-likelihood, and push $q_\theta(\omega)$ to explain data well
 - second term pushes $q_\theta(\omega)$ close to the prior
+In fact,
+$$
+\begin{align}
+	\text{KL}(q_\theta(\omega)||p(\omega|X,Y))&=\mathbb{E}_q[\log q_\theta(\omega)]-\mathbb{E}_q[\log p(\omega|X,Y)]= \\
+	&=\mathbb{E}_q[\log q_\theta(\omega)]-\mathbb{E}_q[\log p(Y|X,\omega)]-\mathbb{E}_q[\log p(\omega)]+\mathbb{E}_q[\log p(Y|X)] = \\
+	&\leq \mathbb{E}_q[\log q_\theta(\omega)]-\mathbb{E}_q[\log p(Y|X,\omega)]-\mathbb{E}_q[\log p(\omega)] =\\
+	&= \text{KL}(q_\theta(\omega)||p(\omega)) - \mathcal{L}_\text{LL}
+\end{align}
+$$
 
 >The Bayesian modelling strategies aims at solving an integral (marginalisation). Variational inference becomes an optimization problem, so we compute derivatives (still not the same as in DL, since here we optimise over distributions, not single values).
 

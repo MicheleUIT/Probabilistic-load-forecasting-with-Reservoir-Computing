@@ -12,4 +12,4 @@
 - [Calibrating Deep Neural Networks using Focal Loss](https://proceedings.neurips.cc/paper/2020/file/aeb7b30ef1d024a76f21a1d40e30c302-Paper.pdf)
 - [Mitigating Neural Network Overconfidence with Logit Normalization](https://arxiv.org/pdf/2205.09310.pdf)
 - [Deep Echo State Networks with Uncertainty Quantification for Spatio-Temporal Forecasting](https://arxiv.org/pdf/1806.10728.pdf)
-- 
+- [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/) (book for a special curriculum?)

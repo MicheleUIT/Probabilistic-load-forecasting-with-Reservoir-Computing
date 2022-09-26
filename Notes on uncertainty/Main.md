@@ -1,4 +1,3 @@
-
 # Notes on Reservoir Computing and uncertainty quantification
 ## Ideas
 ### Comparative study

@@ -121,7 +121,8 @@
               }
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
@@ -130,9 +131,10 @@
   },
   "active": "3cf9dbdf859f9671",
   "lastOpenFiles": [
+    "Papers/Uncertainty in Deep Learning.md",
+    "Main.md",
     "Readings.md",
     "Notes.md",
-    "Papers/Uncertainty in Deep Learning.md",
     "Monte Carlo Markov Chain.md",
     "Echo State Networks.md",
     "Papers/Accurate uncertainties for Deep Learning using calibrated regression.md"
