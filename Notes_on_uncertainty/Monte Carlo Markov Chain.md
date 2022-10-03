@@ -15,7 +15,7 @@ $$
 Sometimes though it could be hard to sample from $f$, that's when we use Markov Chains.
 
 ## Markov Chains
-A Markov Chain is a stochastic process that satisfies the Markov property:
+A Markov Chain is a stochastic process with descrete time that satisfies the Markov property:
 $$
 	P(X_{n+1}=k|X_n=k_n,X_{n-1}=k_{n-1},\dots,X_1=k_1)=P(X_{n+1}=k|X_n=k_n)
 $$
@@ -27,8 +27,7 @@ $$
 	S_{i+1}=S_iQ
 $$
 where $Q$ is a transition probability.
-%% Is this always the case for a markov chain? %%
-By keeping to apply $Q$ we can reconstruct the whole trajectory, and we may find that it saturates and reaches a stationary distribution such that $S=QS$. %%fixed point?%%
+Keep applying $Q$, we can then reconstruct the whole trajectory, and we may find that it saturates and reaches a stationary distribution such that $S=QS$. 
 This happens regardless of the starting state.
 
 ## MCMC
@@ -37,7 +36,7 @@ $$
 	P(A|B)=\frac{P(B|A)P(A)}{P(B)}
 $$
 usually is impossible even if you have the numerator (i.e., likelihood x prior), because the marginal probability $P(B)=\sum P(B|A)P(A)$ can still be intractable.
-The idea of MCMC is to estimate the posterior without going through Bayes: by starting from a probability distribution and gradually converge to the posterior.
+The idea of MCMC is to estimate the posterior without going through Bayes: by starting from a probability distribution and gradually converging to the posterior.
 
 How to be sure that the Markov chain converges to the wanted probability distribution? We use Detailed Balance Sheet %% how does it work? %%
 
