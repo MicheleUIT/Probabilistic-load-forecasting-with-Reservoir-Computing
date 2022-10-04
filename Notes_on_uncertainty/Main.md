@@ -8,7 +8,7 @@
 3) Address the problem of doing regression on the output of the reservoir
 	- It's too large for MCMC
 	- With VI there is no problem %% why? %%
-	- [Here](Deep Echo State Networks with Uncertainty Quantification for Spatio-Temporal Forecasting) they sample the number of regression parameter
+	- [Here](https://arxiv.org/abs/1806.10728) they sample the number of regression parameter
 	- Other dimensionality reduction techniques, like PCA
 4) Add [[Accurate uncertainties for Deep Learning using calibrated regression|calibration]] on top and compare the different methods
 5) Apply this on time-series forecasting settings. I would need more datasets if it has to be a comparative study.
