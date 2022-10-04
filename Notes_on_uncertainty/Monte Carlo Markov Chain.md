@@ -98,4 +98,4 @@ Notes:
 - different definitions of the acceptance probability lead to different MCMC;
 - the algorithm can be extended to continuous state space;
 - a measure of the performance of MCMC is the **correlation time** of a statistic, say $\langle f(x)\rangle_\pi$, $$ \tau_f:=\frac{1}{C_f(0)}\sum_{t=-\infty}^{+\infty}\,C_f(t)dt, \quad \text{where} \quad C_f(t)=\mathbb{E}_\pi[f(X_t)f(X_0)]-(\mathbb{E}[f(X_t)])^2. $$
-(I'm not sure about this definition: shouldn't $C_f$ be the correlation between $t$ and 0?)
+(I'm not sure about this definition: shouldn't $C_f$ be the correlation between $t$ and 0? What is dt?)
