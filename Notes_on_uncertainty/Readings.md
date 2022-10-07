@@ -13,3 +13,6 @@
 - [Mitigating Neural Network Overconfidence with Logit Normalization](https://arxiv.org/pdf/2205.09310.pdf)
 - [Deep Echo State Networks with Uncertainty Quantification for Spatio-Temporal Forecasting](https://arxiv.org/pdf/1806.10728.pdf)
 - [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/) (book for a special curriculum?)
+- [Time series reconstructing using calibrated reservoir computing](https://www.nature.com/articles/s41598-022-20331-3)
+- [Connecting reservoir computing with statistical forecasting and deep neural networks](https://www.nature.com/articles/s41467-021-27715-5)
+- [Next generation reservoir computing](https://www.nature.com/articles/s41467-021-25801-2)
