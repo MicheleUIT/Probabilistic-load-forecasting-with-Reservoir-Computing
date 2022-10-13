@@ -2,6 +2,7 @@
 Sources: 
 - https://towardsdatascience.com/monte-carlo-markov-chain-mcmc-explained-94e3a6c8de11 
 - https://cims.nyu.edu/~holmes/teaching/asa19/handout_Lecture3_2019.pdf#page=13&zoom=100,89,628 
+- https://arxiv.org/pdf/1206.1901.pdf
 - %%find better ones?%%
 
 MCMC is a sampling technique used to estimate some characteristics of a population, It's composed of [[Monte Carlo Markov Chain^Monte Carlo|Monte Carlo]] and [[Monte Carlo Markov Chain^Markov Chains|Markov Chains]].
@@ -99,3 +100,9 @@ Notes:
 - the algorithm can be extended to continuous state space;
 - a measure of the performance of MCMC is the **correlation time** of a statistic, say $\langle f(x)\rangle_\pi$, $$ \tau_f:=\frac{1}{C_f(0)}\sum_{t=-\infty}^{+\infty}\,C_f(t)dt, \quad \text{where} \quad C_f(t)=\mathbb{E}_\pi[f(X_t)f(X_0)]-(\mathbb{E}[f(X_t)])^2. $$
 (I'm not sure about this definition: shouldn't $C_f$ be the correlation between $t$ and 0? What is dt?)
+
+## Hamiltonian MC
+
+^229702
+
+(write something from https://arxiv.org/pdf/1206.1901.pdf)
