@@ -11,6 +11,7 @@
 	- [Here](https://arxiv.org/abs/1806.10728) they sample the number of regression parameter
 	- Other dimensionality reduction techniques, like PCA
 4) Add [[Accurate uncertainties for Deep Learning using calibrated regression|calibration]] on top and compare the different methods
+	- How to properly measure the (lack of) calibration? If the actual coverage of a CI with probability $p$ is less than $p$, shouldn't we also have a measure of the confidence on the coverage so to properly compare them?
 5) Apply this on time-series forecasting settings. I would need more datasets if it has to be a comparative study.
 
 ## Novel study

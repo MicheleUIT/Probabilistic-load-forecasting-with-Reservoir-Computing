@@ -3,6 +3,7 @@
 - [[Uncertainty in Deep Learning]]
 - [Bayesian inference problem, MCMC and variational inference](https://towardsdatascience.com/bayesian-inference-problem-mcmc-and-variational-inference-25a8aa9bce29) 
 - [Monte Carlo Markov Chain (MCMC) explained](https://towardsdatascience.com/monte-carlo-markov-chain-mcmc-explained-94e3a6c8de11), go to [[Monte Carlo Markov Chain]]
+- [MCMC using Hamiltonian dynamics](https://arxiv.org/pdf/1206.1901.pdf), go to [[Monte Carlo Markov Chain#^229702|HMC]]
 - 
 
 ## To read:
