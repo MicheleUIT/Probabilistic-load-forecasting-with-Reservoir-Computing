@@ -17,3 +17,5 @@
 - [Time series reconstructing using calibrated reservoir computing](https://www.nature.com/articles/s41598-022-20331-3)
 - [Connecting reservoir computing with statistical forecasting and deep neural networks](https://www.nature.com/articles/s41467-021-27715-5)
 - [Next generation reservoir computing](https://www.nature.com/articles/s41467-021-25801-2)
+- [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43)
+- [Deep echo state networks with uncertainty quantificationfor spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (add a comment on this to ESN)

@@ -7,6 +7,9 @@ In many scenarios it's important to be able to tell how certain we are about a m
 If we train a model on a dataset, and then provide a datapoint that lies outside the training data distribution, the model should give me a prediction, but also tell me its uncertainty/confidence about it: if it's under-confident or falsely over-confident.
 
 ### Types of uncertainties:
+
+^f25fa8
+
 - **aleatoric uncertainty**: observed labels could be noisy due to noisy data (e.g., measurements imprecision)
 - **model uncertainty**:
 	- coming from uncertainty in model parameters (a lot of models could explain the same dataset)
