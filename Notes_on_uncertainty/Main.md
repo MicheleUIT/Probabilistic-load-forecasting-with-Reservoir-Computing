@@ -22,6 +22,8 @@ Extend the above on graphs, or time-dependant graphs.
 
 ## To do list
 - [ ] Use a deeper NN
+	- [x] find a way to implement more layers
+	- [ ] play around with configurations to make it work
 - [ ] carefully fix the MCMC so that it works correctly
 	- [ ] read paper on HMC
 	- [ ] read chapter on all the parameters of HMC
