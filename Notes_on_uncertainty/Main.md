@@ -25,8 +25,8 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] find a way to implement more layers
 	- [ ] play around with configurations to make it work
 - [ ] carefully fix the MCMC so that it works correctly
-	- [ ] read paper on HMC
-	- [ ] read chapter on all the parameters of HMC
+	- [x] read paper on [[Monte Carlo Markov Chain#^8975bf|HMC]]
+	- [ ] read chapter on the diagnostics of HMC
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [ ] Read about the "[stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553)"
 		- [ ] check if there has been further progress since 2018
