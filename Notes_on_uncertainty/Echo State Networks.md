@@ -34,6 +34,8 @@ To quantify uncertainty you can:
 - implement Bayesian ESN (have a look at the reference they cite), but it can't work with MCMC (https://link.springer.com/content/pdf/10.1007/978-3-319-23525-7_22.pdf, https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6177672)
 - use an ensemble of weak learners ESN so to have smaller hidden state dimension (wouldn't this just be epistemic uncertainty though?)
 
+Dimension reduction methods they use: PCA, _laplacian eigenmaps_ 
+
 Interesting(?) readings by same author:
 - https://www.mdpi.com/1099-4300/21/2/184
 - https://arxiv.org/abs/2209.02750
