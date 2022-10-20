@@ -5,6 +5,7 @@
 - [Monte Carlo Markov Chain (MCMC) explained](https://towardsdatascience.com/monte-carlo-markov-chain-mcmc-explained-94e3a6c8de11), go to [[Monte Carlo Markov Chain]]
 - [MCMC using Hamiltonian dynamics](https://arxiv.org/pdf/1206.1901.pdf), go to [[Monte Carlo Markov Chain#^229702|HMC]]
 - [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf), go to [[Monte Carlo Markov Chain#^87ebef|HMC]]
+- [Deep echo state networks with uncertainty quantificationfor spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553), go to [[Echo State Networks#^5ae715| Stochastic search variable selection]]
 - 
 
 ## To read:
@@ -19,4 +20,3 @@
 - [Connecting reservoir computing with statistical forecasting and deep neural networks](https://www.nature.com/articles/s41467-021-27715-5)
 - [Next generation reservoir computing](https://www.nature.com/articles/s41467-021-25801-2)
 - [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43)
-- [Deep echo state networks with uncertainty quantificationfor spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (add a comment on this to ESN)
