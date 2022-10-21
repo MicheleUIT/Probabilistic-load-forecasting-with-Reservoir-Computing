@@ -5,7 +5,8 @@
 - [Monte Carlo Markov Chain (MCMC) explained](https://towardsdatascience.com/monte-carlo-markov-chain-mcmc-explained-94e3a6c8de11), go to [[Monte Carlo Markov Chain]]
 - [MCMC using Hamiltonian dynamics](https://arxiv.org/pdf/1206.1901.pdf), go to [[Monte Carlo Markov Chain#^229702|HMC]]
 - [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf), go to [[Monte Carlo Markov Chain#^87ebef|HMC]]
-- [Deep echo state networks with uncertainty quantificationfor spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553), go to [[Echo State Networks#^5ae715| Stochastic search variable selection]]
+- [Deep echo state networks with uncertainty quantificationfor spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553), go to [[Echo State Networks#^5ae715|Dimensionality reduction]]
+- [Approaches for Bayesian variable selection](https://www3.stat.sinica.edu.tw/statistica/oldpdf/A7n26.pdf), go to [[Echo State Networks#^1f53d5|SSVS]]
 - 
 
 ## To read:

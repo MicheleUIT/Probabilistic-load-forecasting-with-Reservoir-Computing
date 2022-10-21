@@ -66,6 +66,9 @@ If the chain satisfies detailed balance, then $Q$ can be symmetrized and its spe
 
 
 ## MCMC
+
+^6e6df4
+
 Estimating the posterior
 $$
 	P(A|B)=\frac{P(B|A)P(A)}{P(B)}

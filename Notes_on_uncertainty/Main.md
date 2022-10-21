@@ -28,9 +28,11 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] read paper on [[Monte Carlo Markov Chain#^8975bf|HMC]]
 	- [ ] read chapter on the diagnostics of HMC
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
-	- [ ] Read about the "[stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553)"
+	- [x] Read about the "[stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553)"
 		- [ ] check if there has been further progress since 2018
-	- [ ] does PCA affect the correlation of guide samples?
+	- [ ] PCA
+		- [ ] does PCA affect the correlation of guide samples?
+	- [ ] Laplacian eigenmaps
 - [ ] Use frequentist approaches to quantify uncertainties
 	- [ ] Read about quantile regression
 	- [ ] Use enseble ESN for epistemic uncertainties?
