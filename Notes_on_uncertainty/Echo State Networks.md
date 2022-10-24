@@ -36,6 +36,11 @@ To quantify uncertainty you can:
 In the D-EESN algorithm, they represent the dimension reduction step with $\mathcal{Q}(h)$, where $\mathcal{Q}$ is either PCA or _laplacian eigenmaps_. The problem with this is that it doesn't take fully in account all sources of uncertainty, that's why they switch to a Bayesian approach (MCMC).
 In the Bayesian approach (BD-EESN) they sample an ensemble of reservoirs and then perform a Bayesian regression. The regression parameters are then shrinked with a stochastic variable selection (SSVS) prior, that is, many regression parameters are set to zero or close to zero.
 
+Interesting(?) readings by same author:
+- https://www.mdpi.com/1099-4300/21/2/184 -> Bayesian LSTM
+  > Depending on the application, any number of methods [of dimensionality reduction] can be selected from linear methods such as wavelets, splines, or principal components, or nonlinear methods such as Laplacian eigenmaps [41], restricted Boltzmann machines [42], or diffusion maps [43]
+- https://arxiv.org/abs/2206.02218
+
 ## Stochastic search variable selection 
 
 ^1f53d5
@@ -65,7 +70,3 @@ To explore $\pi(\gamma|Y)$ one can use [[Monte Carlo Markov Chain#^6e6df4|MCMC]]
 Source: [Laplacian eigenmaps and spectral techniques for embedding and clustering](https://proceedings.neurips.cc/paper/2001/file/f106b7f99d2cb30c3db1c3cc0fde9ccb-Paper.pdf)
 
 
-Interesting(?) readings by same author:
-- https://www.mdpi.com/1099-4300/21/2/184
-- https://arxiv.org/abs/2209.02750
-- https://arxiv.org/abs/2206.02218
