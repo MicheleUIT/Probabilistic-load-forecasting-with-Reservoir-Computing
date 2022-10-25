@@ -21,3 +21,5 @@
 - [Connecting reservoir computing with statistical forecasting and deep neural networks](https://www.nature.com/articles/s41467-021-27715-5)
 - [Next generation reservoir computing](https://www.nature.com/articles/s41467-021-25801-2)
 - [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43)
+- https://ieeexplore.ieee.org/document/9892160
+- https://people.eecs.berkeley.edu/~angelopoulos/publications/downloads/gentle_intro_conformal_dfuq.pdf
