@@ -44,3 +44,4 @@ Extend the above on graphs, or time-dependant graphs.
 - [ ] Compare raw MCMC with MCMC+SSVS, MCMC+dimensionality reduction (PCA, laplacian eigenmaps, ...)
 - [ ] Compare ESN with Bayesian LSTM (check https://github.com/manuwhs/BayesianRNN)
 - [ ] Compare also with the [time-series forecaster](https://pyro.ai/examples/forecasting_i.html9) by Pyro (later on)
+- [ ] Add more datasets (like [this](https://www.kaggle.com/code/mfaaris/3-ways-to-deal-with-time-series-forecasting))
