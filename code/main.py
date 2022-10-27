@@ -5,15 +5,8 @@ import os
 from bayesian.models import BayesianModel
 
 config = {
-            "prior": # ordered list of priors
-                [{
-                    "name" : "Gauss",
-                    "params" : [0., 1.]
-                },
-                {
-                    "name" : "Uniform",
-                    "params" : [0., 10.]
-                }],
+            "pyro_model": "model1",
+            "params": [[0,1],[0,10]]
             }
 
 os.environ["WANDB_MODE"]="offline"
