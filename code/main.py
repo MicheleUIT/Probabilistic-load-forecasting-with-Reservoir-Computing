@@ -4,9 +4,12 @@ import os
 
 from bayesian.models import BayesianModel
 
+import pyro
+from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
+
 config = {
-            "pyro_model": "model1",
-            "params": [[0,1],[0,10]]
+            "distributions": ["gauss", "unif", "gauss"],
+            "parameters": [[0,1],[0,10]]
             }
 
 os.environ["WANDB_MODE"]="offline"
@@ -28,7 +31,10 @@ def main():
                 ).to(device)
 
     model = BayesianModel(torch_model, config, device)
-    model.render_model(model_args=(torch.rand(1,20), torch.rand(1,1))) # how to print it?
+    model.render_model(model_args=(torch.rand(1,20), torch.rand(1,1)))
+
+    guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
+    pyro.render_model(guide, model_args=(torch.rand(1,20), torch.rand(1,1)), render_distributions=True, filename="guide.png")
 
 
 if __name__ == "__main__":
