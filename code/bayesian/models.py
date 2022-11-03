@@ -1,4 +1,4 @@
-# import torch
+import torch
 import pyro
 
 import pyro.distributions as dist
@@ -7,6 +7,30 @@ from pyro.nn import PyroModule, PyroSample
 # from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
 # from pyro.optim import Adam
 # from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS, HMC
+
+
+class TorchModel(torch.nn.Module):
+    def __init__(self, widths, activation):
+        super().__init__()
+        self.layers = torch.nn.ModuleList()
+
+        if activation == "tanh":
+            a = torch.nn.Tanh()
+        elif activation == "relu":
+            a = torch.nn.ReLU()
+        else:
+            raise ValueError(f"{activation} not defined.")
+
+        for i in range(len(widths)-2):
+            self.layers.append(torch.nn.Linear(widths[i], widths[i+1]))
+            self.layers.append(a)
+        
+        self.layers.append(torch.nn.Linear(widths[-2], widths[-1]))
+
+    def forward(self, x):
+        for f in self.layers:
+            x = f(x)
+        return x
 
 
 class BayesianModel(PyroModule):
@@ -72,8 +96,8 @@ class BayesianModel(PyroModule):
     
 
 
+# should I define a full custom guide?
 # when defining the guide, put constraints on variances
-
 class BayesianGuide(PyroModule):
     def __init__(self, torch_model, config, device):
         super().__init__()
