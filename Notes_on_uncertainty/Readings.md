@@ -7,6 +7,7 @@
 - [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf), go to [[Monte Carlo Markov Chain#^87ebef|HMC]]
 - [Deep echo state networks with uncertainty quantification for spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553), go to [[Echo State Networks#^5ae715|Dimensionality reduction]]
 - [Approaches for Bayesian variable selection](https://www3.stat.sinica.edu.tw/statistica/oldpdf/A7n26.pdf), go to [[Echo State Networks#^1f53d5|SSVS]]
+- [Pyro: Deep Universal Probabilistic Programming](https://jmlr.org/papers/volume20/18-403/18-403.pdf)
 - 
 
 ## To read:

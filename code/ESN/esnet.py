@@ -343,44 +343,46 @@ def format_config(n_internal_units, spectral_radius, connectivity, input_scaling
 
     return config
 
-def generate_datasets(X, Y, test_percent = 0.15, val_percent = 0.15, scaler = StandardScaler):
-    n_data,_ = X.shape
+####### MOVED TO dataset/data_loaders.py ########
 
-    n_te = np.ceil(test_percent*n_data).astype(int)
-    n_val = np.ceil(val_percent*n_data).astype(int)
-    n_tr = n_data - n_te - n_val
+# def generate_datasets(X, Y, test_percent = 0.15, val_percent = 0.15, scaler = StandardScaler):
+#     n_data,_ = X.shape
 
-    # Split dataset
-    Xtr = X[:n_tr, :]
-    Ytr = Y[:n_tr, :]
+#     n_te = np.ceil(test_percent*n_data).astype(int)
+#     n_val = np.ceil(val_percent*n_data).astype(int)
+#     n_tr = n_data - n_te - n_val
 
-    Xval = X[n_tr:-n_te, :]
-    Yval = Y[n_tr:-n_te, :]
+#     # Split dataset
+#     Xtr = X[:n_tr, :]
+#     Ytr = Y[:n_tr, :]
 
-    Xte = X[-n_te:, :]
-    Yte = Y[-n_te:, :]
+#     Xval = X[n_tr:-n_te, :]
+#     Yval = Y[n_tr:-n_te, :]
 
-    # Scale
-    Xscaler = scaler()
-    Yscaler = scaler()
+#     Xte = X[-n_te:, :]
+#     Yte = Y[-n_te:, :]
 
-    # Fit scaler on training set
-    Xtr = Xscaler.fit_transform(Xtr)
-    Ytr = Yscaler.fit_transform(Ytr)
+#     # Scale
+#     Xscaler = scaler()
+#     Yscaler = scaler()
 
-    # Transform the rest
-    Xval = Xscaler.transform(Xval)
-    Yval = Yscaler.transform(Yval)
+#     # Fit scaler on training set
+#     Xtr = Xscaler.fit_transform(Xtr)
+#     Ytr = Yscaler.fit_transform(Ytr)
 
-    Xte = Xscaler.transform(Xte)
-    Yte = Yscaler.transform(Yte)
+#     # Transform the rest
+#     Xval = Xscaler.transform(Xval)
+#     Yval = Yscaler.transform(Yval)
 
-    # add constant input
-    Xtr = np.concatenate((Xtr,np.ones((Xtr.shape[0],1))),axis=1)
-    Xval = np.concatenate((Xval,np.ones((Xval.shape[0],1))),axis=1)
-    Xte = np.concatenate((Xte,np.ones((Xte.shape[0],1))),axis=1)
+#     Xte = Xscaler.transform(Xte)
+#     Yte = Yscaler.transform(Yte)
 
-    return Xtr, Ytr, Xval, Yval, Xte, Yte
+#     # add constant input
+#     Xtr = np.concatenate((Xtr,np.ones((Xtr.shape[0],1))),axis=1)
+#     Xval = np.concatenate((Xval,np.ones((Xval.shape[0],1))),axis=1)
+#     Xte = np.concatenate((Xte,np.ones((Xte.shape[0],1))),axis=1)
+
+#     return Xtr, Ytr, Xval, Yval, Xte, Yte
 
 def construct_output(X, shift):
     return X[:-shift,:], X[shift:, :]
