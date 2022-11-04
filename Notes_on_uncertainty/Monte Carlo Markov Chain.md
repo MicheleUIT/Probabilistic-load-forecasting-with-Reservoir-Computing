@@ -60,7 +60,7 @@ $$
 
 **NB**: The stationary condition is $S_i=\sum_j S_jQ_{ji}$, in the detailed balance equation above there is no sum.
 
-Notice that if $X$ is a markov chain with distribution $S$ that satisfies detailed balance, then $S$ is stationary.  This is good because solving [[Monte Carlo Markov Chain#^f94fe6|the equation above]] is simpler than than directly searching for a stationary distribution.
+Notice that if $X$ is a Markov chain with distribution $S$ that satisfies detailed balance, then $S$ is stationary.  This is good because solving [[Monte Carlo Markov Chain#^f94fe6|the equation above]] is simpler than directly searching for a stationary distribution.
 
 If the chain satisfies detailed balance, then $Q$ can be symmetrized and its spectrum gives information on the time scales dynamics of the chain (see more [here](https://cims.nyu.edu/~holmes/teaching/asa19/handout_Lecture3_2019.pdf#page=13&zoom=100,89,628)).
 
@@ -80,8 +80,9 @@ Pros:
 - efficient sampling in high dimension
 - solve problems with a large state space
 - you don't need to compute the normalization constant $P(B)$
+
 Cons:
-- MCMC doesn't perform well in approximating distribution with multi modes
+- MCMC doesn't perform well in approximating multimodal distributions
 - can be computationally expensive
 
 How to be sure that the Markov chain converges to the wanted probability distribution? We use [[Monte Carlo Markov Chain#^098190|detailed balance]].
@@ -178,6 +179,17 @@ HMC is ergodic, so it shouldn't get trapped in a small region of the state space
 Sensitive parameters are:
 - Stepsize $\varepsilon$
 - Trajectory length $L$
-Things to check:
+Metrics:
 - What is the optimal acceptance rate?
 - Autocorrelation
+
+### Things to check
+**Convergence**: if the MC converges to the right posterior
+**Mixing**: if the MC moves around throughout the whole density once it has converged
+
+They are affected by:
+- *Starting values* for the parameters: for certain starting values convergence may be too slow, so also mixing becomes a problem.
+- *Shape of the posterior*: examples:
+	- If the posterior is *multimodal*, MC may converge fast to one mode, but it could not be able to mix to the others modes. A solution could be to use a proposal density with larger variance, or find a better model that is not affected by multimodality (maybe multimodality raised by ignoring some important variable). 
+	- Strong *correlations* between the parameters of the posterior can cause poor convergence and mixing. A solution is centering the data, or reparameterizing the model so to make them uncorrelated, or changing the posterior completely
+- Choice of *proposal density* (is it the variational distribution? no, it should be the model itself)

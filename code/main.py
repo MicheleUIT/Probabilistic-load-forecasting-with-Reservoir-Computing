@@ -12,7 +12,8 @@ config = {
             "model_widths": [20, 10, 1],
             "activation": "tanh",
             "distributions": ["gauss", "unif", "gauss"],
-            "parameters": [[0,1],[0,10]]
+            "parameters": [[0,1],[0,10]],
+            "inference": "svi"
             }
 
 os.environ["WANDB_MODE"]="offline"
