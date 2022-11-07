@@ -25,9 +25,13 @@ Extend the above on graphs, or time-dependant graphs.
 - [x] Use a deeper NN
 	- [x] find a way to implement more layers
 	- [x] play around with configurations to make it work
-- [ ] carefully fix the MCMC so that it works correctly
+- [x] carefully fix the MCMC so that it works correctly
 	- [x] read paper on [[Monte Carlo Markov Chain#^8975bf|HMC]]
-	- [ ] read chapter on the diagnostics of HMC
+	- [x] read chapter on the diagnostics of HMC
+- [ ] Implement the diagnostic tools for MCMC
+	- [ ] retrieve acceptance rate
+	- [ ] plot trace graphs
+	- [ ] check how the Gelman Rubin factor is computed in Pyro
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [x] Read about the "[stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553)"
 		- [ ] check if there has been further progress since 2018
