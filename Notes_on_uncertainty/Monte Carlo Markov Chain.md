@@ -180,9 +180,6 @@ Sensitive parameters are:
 - Stepsize $\varepsilon$
 - Trajectory length $L$
 - Proposal distribution
-Metrics:
-- What is the optimal acceptance rate?
-- Autocorrelation
 
 ### Possible problems
 **Convergence**: if the MC converges to the right posterior
@@ -208,3 +205,35 @@ Problems of trace plots:
 - if the mixing doesn't happen rapidly, one may think that convergence occurred, but in reality it has only converged to a tail of the distribution and hasn't mixed through the rest yet
 
 #### Acceptance rates
+If the acceptance rate is too low, of course convergence is slow: the algorithm sticks in one place and rarely moves. If it's too high, it could mean that it's not converging or it's not mixing properly. Roughly, in an MH algorithm, *the acceptance rate should be around 50%*.
+To fix issues concerning the acceptance rate, one should change the proposal density (in terms of shape, variance, correlation), so that it more closely mathces the posterior.
+
+#### Autocorrelation
+Samples from MCMC are not independent (each sample in the chain depends only on the last one), and indeed there could be autocorrelation.
+Autocorrelation mostly affects variance, making it too small.
+The *autocorrelation coefficient* of a parameter $x$ is
+$$
+	R(L)=\frac{T}{T-L}\frac{\sum_{t=0}^{T-L}(x_t-\bar{x})(x_{t+L}-\bar{x})}{\sum_{t=1}^T(x_t-\bar{x})},
+$$
+where $T$ is the number of iterations, $L$ is the lag, and $\bar{x}$ is the mean.
+To fix this, one might take a sample after $L$ steps (where $L$ is chosen so that $R(L)$ is small), or take an average over $L$ steps.
+
+#### Gelman-Rubin diagnostic
+If you run $m$ chains (with different initial conditions), of lenght $n$, for each parameter $\theta$ you can define
+$$
+	\text{within-chain variance}=\frac{1}{m(n-1)}\sum_{i=1}^m\sum_{j=1}^n(\theta_{ij}-\bar{\theta}_i)^2
+$$
+$$
+	\text{between variance}=\frac{n}{m-1}\sum_{i=1}^m(\theta_i-\bar{\theta})^2
+$$
+$$
+	\text{total variance}=\text{within-chain}+\text{between variances}
+$$
+where $\theta_{ij}$ is the sampled parameter from chain $i$ at iteration $j$, $\bar{\theta}_i$ is the average value in chain $i$, and $\bar{\theta}$ is the overall average.
+The Gelman-Rubin factor is defined as
+$$
+	\hat{R}=\sqrt{\frac{\text{total}}{\text{within}}}.
+$$
+The idea is that, if the chains are convering, the between variance should disappear, and $\hat{R}$ should converge to 1.
+
+Again, if $\hat{R}$ is converging to 1 doesn't mean that the MCMC converged, because if all the chains are converging to the same mode you wouldn't know.
