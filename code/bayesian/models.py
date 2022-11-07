@@ -96,36 +96,36 @@ class BayesianModel(PyroModule):
     
 
 
-# should I define a full custom guide?
-# when defining the guide, put constraints on variances
-class BayesianGuide(PyroModule):
-    def __init__(self, torch_model, config, device):
-        super().__init__()
+# # should I define a full custom guide?
+# # when defining the guide, put constraints on variances
+# class BayesianGuide(PyroModule):
+#     def __init__(self, torch_model, config, device):
+#         super().__init__()
 
-        self.device = device
-        self.config = config
-        self.model = torch_model
+#         self.device = device
+#         self.config = config
+#         self.model = torch_model
 
-        self.distributions = self.get_priors()
+#         self.distributions = self.get_priors()
         
-        self.torch2pyro()
+#         self.torch2pyro()
 
 
-    def forward(self, x, y=None):
-        mean = self.model(x).squeeze(-1)
+#     def forward(self, x, y=None):
+#         mean = self.model(x).squeeze(-1)
 
-        sigma = pyro.sample("sigma", self.distributions[-2]).to(self.device)
+#         sigma = pyro.sample("sigma", self.distributions[-2]).to(self.device)
 
-        return mean
+#         return mean
 
     
-    def torch2pyro(self):
-        pyro.nn.module.to_pyro_module_(self.model)
+#     def torch2pyro(self):
+#         pyro.nn.module.to_pyro_module_(self.model)
 
-        for m in self.model.modules():
-            for name, value in list(m.named_parameters(recurse=False)):
-                setattr(m, name, PyroSample(self.distributions[0].expand(value.shape).to_event(value.dim())))
+#         for m in self.model.modules():
+#             for name, value in list(m.named_parameters(recurse=False)):
+#                 setattr(m, name, PyroSample(self.distributions[0].expand(value.shape).to_event(value.dim())))
 
 
-    def render_model(self, model_args):
-        return pyro.render_model(self, model_args, render_distributions=True, filename="guide.png")
+#     def render_model(self, model_args):
+#         return pyro.render_model(self, model_args, render_distributions=True, filename="guide.png")

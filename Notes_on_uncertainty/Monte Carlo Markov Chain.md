@@ -34,7 +34,7 @@ $$
 i.e., the $(n+1)$-th state of the system depends only on th $n$-th one.
 
 ### Stationary distributions
-Assume that at time $n$ the distribution over the states of the system is $S_i(n)=P(X_n=i)$ (e.g., if $S(n)=(0.9,0,0.1)$, it means that the system is more likely to be in state $(1,0,0)$). You can write the distribution at time step $n+1$ is
+Assume that at time $n$ the distribution over the states of the system is $S_i(n)=P(X_n=i)$ (e.g., if $S(n)=(0.9,0,0.1)$, it means that the system is more likely to be in state $(1,0,0)$). You can write the distribution at time step $n+1$ as
 $$
 	S(n+1)=S(n)Q
 $$
@@ -179,17 +179,32 @@ HMC is ergodic, so it shouldn't get trapped in a small region of the state space
 Sensitive parameters are:
 - Stepsize $\varepsilon$
 - Trajectory length $L$
+- Proposal distribution
 Metrics:
 - What is the optimal acceptance rate?
 - Autocorrelation
 
-### Things to check
+### Possible problems
 **Convergence**: if the MC converges to the right posterior
 **Mixing**: if the MC moves around throughout the whole density once it has converged
 
 They are affected by:
 - *Starting values* for the parameters: for certain starting values convergence may be too slow, so also mixing becomes a problem.
 - *Shape of the posterior*: examples:
-	- If the posterior is *multimodal*, MC may converge fast to one mode, but it could not be able to mix to the others modes. A solution could be to use a proposal density with larger variance, or find a better model that is not affected by multimodality (maybe multimodality raised by ignoring some important variable). 
+	- If the posterior is *multimodal*, MC may converge fast to one mode, but it could not be able to mix to the others modes. A solution could be to use a proposal density with larger variance, or find a better model that is not affected by multimodality (maybe multimodality is caused by ignoring some important variable). 
 	- Strong *correlations* between the parameters of the posterior can cause poor convergence and mixing. A solution is centering the data, or reparameterizing the model so to make them uncorrelated, or changing the posterior completely
-- Choice of *proposal density* (is it the variational distribution? no, it should be the model itself)
+- Choice of *proposal density* (the model itself in Pyro)
+
+### Diagnostics
+What diagnostics to use to assess convergence and mixing? In most cases, if you can't compare the results with the analytical solution, then there is no definitive way of assessing convergence or mixing, but there are some methods that can be used.
+
+#### Trace plots
+A trace plot is simply a plot with iteration number on the $x$-axis and the sampled value on the $y$-axis: in presence of convergence you expect this plot to level-off at some point.
+Instead of plotting the samples of the parameters themselves, one could plot some statistics for all the parameters involved: the mean or variance of the distribution, or the mean/variance computed on batches. The variance may stabilise after the mean, indicating that after convergence it takes some time before having a proper mixing. As said, this should be done for all the parameters involved, and then you can decide what is the burn-in time.
+
+Problems of trace plots:
+- by chaning the scale of the plot we may change our mind on convergence and mixing
+- the plot may suggest convergence and mixing, but maybe only one mode has been explored yet
+- if the mixing doesn't happen rapidly, one may think that convergence occurred, but in reality it has only converged to a tail of the distribution and hasn't mixed through the rest yet
+
+#### Acceptance rates
