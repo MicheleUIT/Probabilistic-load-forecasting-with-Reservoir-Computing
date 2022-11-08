@@ -51,15 +51,25 @@ def pred_SVI(model, guide, X, num_samples):
 #       Monte Carlo Markov Chain        #
 #########################################
 
+
 def train_MCMC(model, guide, X, Y):
     # pyro.clear_param_store() # do we need to clear the param store first?
     nuts_kernel = NUTS(model)
 
-    mcmc = MCMC(nuts_kernel, num_samples=3000, warmup_steps=1000, num_chains=1)
+    # define a hook to log the acceptance rate at each iteration
+    ### ISSUE: not working if num_chains > 1
+    acc_rate = []
+    def acc_rate_hook(kernel, params, stage, i):
+        acc_rate.append(kernel._mean_accept_prob)
 
+    mcmc = MCMC(nuts_kernel, num_samples=3000, warmup_steps=1000, num_chains=1, hook_fn=acc_rate_hook)
+
+    # run the MCMC and compute the training time
     start_time = process_time()
     mcmc.run(X, Y)
     train_time = process_time() - start_time
+
+    return mcmc, train_time, acc_rate
 
 
 def pred_MCMC(mcmc, X):

@@ -33,8 +33,8 @@ Extend the above on graphs, or time-dependant graphs.
 	- [ ] plot trace graphs
 	- [ ] check how the Gelman Rubin factor is computed in Pyro
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
-	- [x] Read about the "[stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553)"
-		- [ ] check if there has been further progress since 2018
+	- [ ] [stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (SSVS)
+		- [x] check if there has been further progress since 2018
 	- [ ] PCA
 		- [ ] does PCA affect the correlation of guide samples?
 	- [ ] Laplacian eigenmaps
