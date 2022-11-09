@@ -10,6 +10,7 @@ def run_esn(dataset):
     # Set ESN hyperparams
     config = json.load(open('ESN/configs/ESN_hyperparams.json', 'r'))
 
+    ### TODO: consider to make this more general with more datasets
     Xtr, Ytr, Xval, Yval, Xte, Yte = generate_datasets(X, Y, test_percent = 0.15, val_percent = 0.15)
     print("Tr: {:d}, Val: {:d}, Te: {:d}".format(Xtr.shape[0], Xval.shape[0], Xte.shape[0]))
 

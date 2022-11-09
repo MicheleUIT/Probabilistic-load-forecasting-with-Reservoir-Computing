@@ -4,7 +4,7 @@ import os
 
 from bayesian.models import BayesianModel, TorchModel
 from bayesian.inference import inference
-from dataset.data_loaders import load_dataset
+from ESN.utils import run_esn
 
 import pyro
 from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
@@ -40,11 +40,11 @@ def main():
     guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
     pyro.render_model(guide, model_args=(torch.rand(1,20), torch.rand(1,1)), render_distributions=True, filename="guide.png")
 
-    # Load data
-    X, Y = load_dataset(config.dataset)
+    # Produce embeddings with ESN
+    Ytr, train_embedding, val_embedding, test_embedding = run_esn(config.dataset) # what's the validity for?
 
     # Do inference
-    inference(config, X, Y)
+    inference(config, model, guide, X_train=train_embedding, Y_train=Ytr, X_test=test_embedding, Y_test=None) # do i need y_test?
 
 
 if __name__ == "__main__":
