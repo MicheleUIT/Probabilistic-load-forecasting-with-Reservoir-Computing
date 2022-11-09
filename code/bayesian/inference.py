@@ -1,15 +1,18 @@
+import numpy as np
+
 from time import process_time
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 
 
-def inference(config, X, Y):
+def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
     if config.inference == "svi":
+        ### TODO: implement SVI
         train_SVI()
         pred_SVI()
     elif config.inference == "mcmc":
-        mcmc, diagnostics = train_MCMC()
-        pred_MCMC(mcmc, X, diagnostics)
+        mcmc, diagnostics = train_MCMC(model, X_train, Y_train)
+        pred_MCMC(model, mcmc, X_test, diagnostics)
     elif config.inference == "q_regr":
         raise ValueError(f"{config.inference} method not implemented.")
     else:
@@ -52,7 +55,7 @@ def pred_SVI(model, guide, X, num_samples):
 #########################################
 
 
-def train_MCMC(model, guide, X, Y):
+def train_MCMC(model, X, Y):
     # pyro.clear_param_store() # do we need to clear the param store first?
     nuts_kernel = NUTS(model)
 
@@ -77,7 +80,17 @@ def train_MCMC(model, guide, X, Y):
     return mcmc, diagnostics
 
 
-def pred_MCMC(mcmc, X, diagnostics):
+def pred_MCMC(model, mcmc, X, diagnostics):
+
+    ### TODO: Compute other diagnostics related to convergence with 'samples'
     samples = mcmc.get_samples()
+
+    # Perform inference
+    predictive = Predictive(model, samples)(x=X, y=None) # num_samples?
+
+    # Quantiles
+    target_interval = 0.95  # draw and compute the 95% confidence interval
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+
 
     # return quantiles, times, calibration diagnostic, (what else?), as dictionary
