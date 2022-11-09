@@ -3,13 +3,13 @@ from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 
 
-def inference(config):
+def inference(config, X, Y):
     if config.inference == "svi":
         train_SVI()
         pred_SVI()
     elif config.inference == "mcmc":
-        train_MCMC()
-        pred_MCMC()
+        mcmc, diagnostics = train_MCMC()
+        pred_MCMC(mcmc, X, diagnostics)
     elif config.inference == "q_regr":
         raise ValueError(f"{config.inference} method not implemented.")
     else:
@@ -57,7 +57,7 @@ def train_MCMC(model, guide, X, Y):
     nuts_kernel = NUTS(model)
 
     # define a hook to log the acceptance rate at each iteration
-    ### ISSUE: not working if num_chains > 1
+    ### ISSUE: Does it work if num_chains > 1 ? I should check on the server
     acc_rate = []
     def acc_rate_hook(kernel, params, stage, i):
         acc_rate.append(kernel._mean_accept_prob)
@@ -69,9 +69,15 @@ def train_MCMC(model, guide, X, Y):
     mcmc.run(X, Y)
     train_time = process_time() - start_time
 
-    return mcmc, train_time, acc_rate
+    diagnostics = {
+        "acceptance_rate": acc_rate,
+        "train_time": train_time
+    }
+
+    return mcmc, diagnostics
 
 
-def pred_MCMC(mcmc, X):
+def pred_MCMC(mcmc, X, diagnostics):
     samples = mcmc.get_samples()
+
     # return quantiles, times, calibration diagnostic, (what else?), as dictionary
