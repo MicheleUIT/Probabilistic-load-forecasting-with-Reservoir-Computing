@@ -1,5 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
+from pathlib import Path
 from time import process_time
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
@@ -9,15 +11,14 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
     if config.inference == "svi":
         ### TODO: implement SVI
         train_SVI()
-        pred_SVI()
+        predictive, diagnostics = pred_SVI()
     elif config.inference == "mcmc":
         mcmc, diagnostics = train_MCMC(model, X_train, Y_train)
-        pred_MCMC(model, mcmc, X_test, diagnostics)
+        predictive, diagnostics = pred_MCMC(model, mcmc, X_test, diagnostics)
     elif config.inference == "q_regr":
         raise ValueError(f"{config.inference} method not implemented.")
     else:
         raise ValueError(f"{config.inference} method not implemented.")
-
 
 
 
@@ -46,7 +47,11 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
 
 def pred_SVI(model, guide, X, num_samples):
     predictive = Predictive(model, guide=guide, num_samples=num_samples)(x=X, y=None)
+
+    diagnostics = {}
+
     # return quantiles, times, calibration diagnostic, (what else?), as dictionary
+    return predictive, diagnostics
 
 
 
@@ -65,15 +70,16 @@ def train_MCMC(model, X, Y):
     def acc_rate_hook(kernel, params, stage, i):
         acc_rate.append(kernel._mean_accept_prob)
 
-    mcmc = MCMC(nuts_kernel, num_samples=3000, warmup_steps=1000, num_chains=1, hook_fn=acc_rate_hook)
+    mcmc = MCMC(nuts_kernel, num_samples=300, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
 
     # run the MCMC and compute the training time
     start_time = process_time()
     mcmc.run(X, Y)
     train_time = process_time() - start_time
+    print(f"MCMC run time: {train_time/60} minutes.")
 
     diagnostics = {
-        "acceptance_rate": acc_rate,
+        "acceptance_rate": np.asarray(acc_rate),
         "train_time": train_time
     }
 
@@ -83,8 +89,15 @@ def train_MCMC(model, X, Y):
 def pred_MCMC(model, mcmc, X, diagnostics):
 
     ### TODO: Compute other diagnostics related to convergence with 'samples'
+    # Do I need to compute also the inference time?
     samples = mcmc.get_samples()
 
+    # Find when it converged
+    acc_rate = diagnostics["acceptance_rate"]
+    warmup = convergence_check(samples, acc_rate)
+
+    ### TODO: Cut samples at warmup computed above
+    ### I probably need to loop through all samples and cut them since it's a dict
     # Perform inference
     predictive = Predictive(model, samples)(x=X, y=None) # num_samples?
 
@@ -92,5 +105,46 @@ def pred_MCMC(model, mcmc, X, diagnostics):
     target_interval = 0.95  # draw and compute the 95% confidence interval
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
 
-
     # return quantiles, times, calibration diagnostic, (what else?), as dictionary
+    return predictive, diagnostics
+
+
+def convergence_check(samples, acc_rate):
+    conv = []
+    for name, param in samples.items():
+        conv.append(trace_plot(param, name, plot=False))
+    
+    return max(conv)
+
+
+def trace_plot(variable, name, plot=False):
+    # Compute a moving average of the rate of change of ´variable´
+    r = np.diff(variable)
+    av_r = np.convolve(r, np.ones(10)/10, mode='valid')
+    x = np.asarray(range(len(av_r)))
+
+    # Change color when ´av_r´ goes below 5%
+    cond = np.abs(av_r/(np.max(av_r)-np.min(av_r)))<0.05
+    col = np.where(cond, 'r', 'b')
+
+    # Threshold for convergence set where ´av_r´ is consistently under 5%
+    t = len(cond) - np.argmin(np.flip(cond))
+
+    # Create the two plots
+    fig, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
+    ax1.set_title(f"{name} trace plot")
+    ax1.grid()
+    ax1.plot(variable)
+    ax1.vlines(t, ymin=np.min(variable), ymax=np.max(variable), colors='g', linestyles='dashed', label="Convergence point")
+    ax2.set_title("Moving average of the rate of change")
+    ax2.grid()
+    ax2.scatter(x, av_r, color=col)
+    ax2.vlines(t, ymin=np.min(av_r), ymax=np.max(av_r), colors='g', linestyles='dashed', label="Convergence point")
+    
+    # Save plots
+    save_path = f'./results/plots/mcmc/'
+    Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if they do not exist
+    plt.savefig(f'{save_path}{name}.png')
+    plt.clf()
+
+    return t
