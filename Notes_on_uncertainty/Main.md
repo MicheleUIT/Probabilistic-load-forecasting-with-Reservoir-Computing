@@ -29,8 +29,8 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] read paper on [[Monte Carlo Markov Chain#^8975bf|HMC]]
 	- [x] read chapter on the diagnostics of HMC
 - [ ] Implement the diagnostic tools for MCMC
-	- [ ] retrieve acceptance rate
-	- [ ] plot trace graphs
+	- [x] retrieve acceptance rate
+	- [x] plot trace graphs
 	- [ ] check how the Gelman Rubin factor is computed in Pyro
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [ ] [stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (SSVS)
