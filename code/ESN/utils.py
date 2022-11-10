@@ -1,5 +1,5 @@
 import json
-import esnet
+import ESN.esnet as esnet
 
 from dataset.data_loaders import load_dataset, generate_datasets
 
@@ -21,4 +21,4 @@ def run_esn(dataset):
                                                                                                                 validation=True,
                                                                                                                 Xval=Xval,
                                                                                                                 Yval=Yval)
-    return Ytr, train_embedding, val_embedding, test_embedding
+    return Ytr, train_embedding, val_embedding, test_embedding, Yte
