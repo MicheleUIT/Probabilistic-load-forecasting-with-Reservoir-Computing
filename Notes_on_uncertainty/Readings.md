@@ -24,3 +24,5 @@
 - [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43)
 - https://ieeexplore.ieee.org/document/9892160
 - https://people.eecs.berkeley.edu/~angelopoulos/publications/downloads/gentle_intro_conformal_dfuq.pdf
+- [RNNs of RNNs: Recursive Construction of Stable Assemblies of Recurrent Neural Networks](https://arxiv.org/pdf/2106.08928.pdf)
+- 
