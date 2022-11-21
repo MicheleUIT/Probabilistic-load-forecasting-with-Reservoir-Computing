@@ -36,6 +36,7 @@ Extend the above on graphs, or time-dependant graphs.
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [ ] [stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (SSVS)
 		- [x] check if there has been further progress since 2018
+		- [ ] can we use VI instead of MCMC?
 	- [ ] PCA
 		- [ ] does PCA affect the correlation of guide samples?
 	- [ ] Laplacian eigenmaps
@@ -55,3 +56,4 @@ Extend the above on graphs, or time-dependant graphs.
 - [ ] Say something about the advantage of using RC with a Bayesian approach instead of RNN:
 	- [ ] would it be possible to use RNN with VI?
 	- [ ] would it be possible to use RNN with MCMC? Probably you can't do the backpropagation...
+- [ ] Compare models with Bayes factor?
