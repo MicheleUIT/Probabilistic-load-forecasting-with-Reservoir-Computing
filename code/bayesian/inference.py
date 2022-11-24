@@ -68,6 +68,8 @@ def train_MCMC(model, X, Y):
     ### ISSUE: Does it work if num_chains > 1 ? I should check on the server
     acc_rate = []
     def acc_rate_hook(kernel, params, stage, i):
+        # _mean_accept_prob contains the acceptance probability
+        # averaged over the time step n
         acc_rate.append(kernel._mean_accept_prob)
 
     mcmc = MCMC(nuts_kernel, num_samples=300, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
@@ -143,7 +145,7 @@ def trace_plot(variable, name, plot=False):
     
     # Save plots
     save_path = f'./results/plots/mcmc/'
-    Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if they do not exist
+    Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
     plt.savefig(f'{save_path}{name}.png')
     plt.clf()
 
