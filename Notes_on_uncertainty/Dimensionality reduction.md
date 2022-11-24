@@ -50,9 +50,13 @@ Can we use SVI?
 
 ### Shrinkage priors
 
+^cc4054
+
 Source: [Bayesian statistics and modelling](https://sci-hub.se/https://doi.org/10.1038/s43586-020-00001-2)
 
 A class of priors $\pi(\beta)$ that one can use is the **spike-and-slab prior**: a mixture of two distributions, one is peaked in zero (spike), which identifies the irrelevant components, and the other is a diffuse distribution (slab), that capture the non-zero coefficients.
+
+I wasn't able to implement the original SSVS, with a Bernoulli, in Pyro, so as spike-and-slab distribution I used a [horseshoe distribution](https://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf) (but I should check if my implementation is correct).
 
 ## Laplacian eigenmaps
 

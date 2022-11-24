@@ -10,7 +10,9 @@
 - [Pyro: Deep Universal Probabilistic Programming](https://jmlr.org/papers/volume20/18-403/18-403.pdf)
 - [Re-visiting the echo state property](https://www.researchgate.net/publication/230656358_Re-visiting_the_echo_state_property), go to [[Echo State Networks#^a82cd8|Echo State Property]]
 - [Bayesian statistics and modelling](https://sci-hub.se/https://doi.org/10.1038/s43586-020-00001-2), go to [[Dimensionality reduction#^452ca4|SSVS]]
+- [Handling Sparsity via the Horseshoe](https://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf), go to [[Dimensionality reduction#^cc4054|SSVS]]
 - 
+
 
 ## To read:
 - [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://arxiv.org/pdf/2107.07511.pdf)
