@@ -4,7 +4,7 @@ import ESN.esnet as esnet
 from dataset.data_loaders import load_dataset, generate_datasets
 
 
-def run_esn(dataset):
+def run_esn(dataset, dim_reduction=True):
     X, Y = load_dataset(dataset)
 
     # Set ESN hyperparams
@@ -15,10 +15,17 @@ def run_esn(dataset):
     print("Tr: {:d}, Val: {:d}, Te: {:d}".format(Xtr.shape[0], Xval.shape[0], Xte.shape[0]))
 
     # Train and compute predictions
-    Yte_pred, _, _, train_embedding, _, val_embedding, _, test_embedding = esnet.run_from_config_return_states(Xtr, Ytr, 
+    # Use the ´_states´ variable if you want the embedding to be the identity
+    Yte_pred, _, train_states, train_embedding, val_states, val_embedding, test_states, test_embedding = esnet.run_from_config_return_states(Xtr, Ytr, 
                                                                                                                 Xte, Yte, 
                                                                                                                 config, 
                                                                                                                 validation=True,
                                                                                                                 Xval=Xval,
                                                                                                                 Yval=Yval)
-    return Ytr, train_embedding, val_embedding, test_embedding, Yte
+    
+    if dim_reduction==True:
+        # Return emedding of states via some dimensionality reduction technique
+        return Ytr, train_embedding, val_embedding, test_embedding, Yte
+    else:
+        # Return the raw reservoir states
+        return Ytr, train_states, val_states, test_states, Yte
