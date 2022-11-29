@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from time import process_time
+from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 
@@ -61,21 +62,27 @@ def pred_SVI(model, guide, X, num_samples):
 
 
 def train_MCMC(model, X, Y):
-    # pyro.clear_param_store() # do we need to clear the param store first?
+    # Clear the param store first, if it was already used
+    clear_param_store()
+
+    # Use NUTS kernel
     nuts_kernel = NUTS(model)
 
     # define a hook to log the acceptance rate at each iteration
-    ### ISSUE: Does it work if num_chains > 1 ? I should check on the server
+    ### NOTE: Does it work if num_chains > 1 ? I should check on the server
     acc_rate = []
     def acc_rate_hook(kernel, params, stage, i):
-        # _mean_accept_prob contains the acceptance probability
+        ### NOTE: _mean_accept_prob contains the acceptance probability
         # averaged over the time step n
+        ### TODO: trace step_size too
         acc_rate.append(kernel._mean_accept_prob)
 
     mcmc = MCMC(nuts_kernel, num_samples=300, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
 
     # run the MCMC and compute the training time
     start_time = process_time()
+    ### FIXME: # It seems that if the step size is too small the computation
+    # time gets very big, even if the acc. prob is high. Why is that?
     mcmc.run(X, Y)
     train_time = process_time() - start_time
     print(f"MCMC run time: {train_time/60} minutes.")

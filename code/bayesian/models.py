@@ -10,6 +10,12 @@ from pyro.nn import PyroModule, PyroSample
 
 
 class TorchModel(torch.nn.Module):
+    """
+    Deterministic model
+
+    :param list widths: List of layers' widths.
+    :param string activation: String specifying the activation function to use.
+    """
     def __init__(self, widths, activation):
         super().__init__()
         self.layers = torch.nn.ModuleList()
@@ -34,6 +40,13 @@ class TorchModel(torch.nn.Module):
 
 
 class BayesianModel(PyroModule):
+    """
+    Probabilistic model built from a TorchModel
+
+    :param torch_model: TorchModel object to transform into probabilistic model.
+    :param config: Configuration settings.
+    :param string device: String specifying the device to use, 'cpu' or 'cuda'.
+    """
     def __init__(self, torch_model, config, device):
         super().__init__()
 
@@ -94,6 +107,10 @@ class BayesianModel(PyroModule):
     def render_model(self, model_args):
         return pyro.render_model(self, model_args, render_distributions=True, filename="model.png")
     
+
+### TODO: Define a full custom guide
+
+### TODO: Define a model for the Stochastic Search Variable Selection
 
 
 # # should I define a full custom guide?

@@ -30,6 +30,7 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] read chapter on the diagnostics of HMC
 - [ ] Implement the diagnostic tools for MCMC
 	- [x] retrieve acceptance rate
+	- [ ] retrieve step size
 	- [x] plot trace graphs
 	- [ ] check how the Gelman Rubin factor is computed in Pyro
 	- [ ] calibration
