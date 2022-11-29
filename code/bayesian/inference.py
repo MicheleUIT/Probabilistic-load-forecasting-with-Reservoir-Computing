@@ -68,14 +68,15 @@ def train_MCMC(model, X, Y):
     # Use NUTS kernel
     nuts_kernel = NUTS(model)
 
-    # define a hook to log the acceptance rate at each iteration
+    # define a hook to log the acceptance rate and step size at each iteration
     ### NOTE: Does it work if num_chains > 1 ? I should check on the server
+    step_size = []
     acc_rate = []
     def acc_rate_hook(kernel, params, stage, i):
+        step_size.append(kernel.step_size) # Log step_size
         ### NOTE: _mean_accept_prob contains the acceptance probability
         # averaged over the time step n
-        ### TODO: trace step_size too
-        acc_rate.append(kernel._mean_accept_prob)
+        acc_rate.append(kernel._mean_accept_prob) # Log acceptance rate
 
     mcmc = MCMC(nuts_kernel, num_samples=300, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
 
@@ -88,6 +89,7 @@ def train_MCMC(model, X, Y):
     print(f"MCMC run time: {train_time/60} minutes.")
 
     diagnostics = {
+        "step_size": np.asarray(step_size),
         "acceptance_rate": np.asarray(acc_rate),
         "train_time": train_time
     }
@@ -114,7 +116,7 @@ def pred_MCMC(model, mcmc, X, diagnostics):
     target_interval = 0.95  # draw and compute the 95% confidence interval
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
 
-    # return quantiles, times, calibration diagnostic, (what else?), as dictionary
+    ### TODO: return quantiles, times, calibration diagnostic, (what else?), as dictionary
     return predictive, diagnostics
 
 
