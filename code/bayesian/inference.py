@@ -6,6 +6,7 @@ from time import process_time
 from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
+from utils import check_calibration
 
 
 def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
@@ -15,7 +16,7 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
         predictive, diagnostics = pred_SVI()
     elif config.inference == "mcmc":
         mcmc, diagnostics = train_MCMC(model, X_train, Y_train)
-        predictive, diagnostics = pred_MCMC(model, mcmc, X_test, diagnostics)
+        predictive, diagnostics = pred_MCMC(model, mcmc, X_test, Y_test, diagnostics)
     elif config.inference == "q_regr":
         raise ValueError(f"{config.inference} method not implemented.")
     else:
@@ -97,7 +98,7 @@ def train_MCMC(model, X, Y):
     return mcmc, diagnostics
 
 
-def pred_MCMC(model, mcmc, X, diagnostics):
+def pred_MCMC(model, mcmc, X, Y, diagnostics):
 
     ### TODO: Compute other diagnostics related to convergence with 'samples'
     # Do I need to compute also the inference time?
@@ -108,7 +109,7 @@ def pred_MCMC(model, mcmc, X, diagnostics):
     warmup = convergence_check(samples, acc_rate)
 
     ### TODO: Cut samples at warmup computed above
-    ### I probably need to loop through all samples and cut them since it's a dict
+    # I probably need to loop through all samples and cut them since it's a dict
     # Perform inference
     predictive = Predictive(model, samples)(x=X, y=None) # num_samples?
 
@@ -116,14 +117,20 @@ def pred_MCMC(model, mcmc, X, diagnostics):
     target_interval = 0.95  # draw and compute the 95% confidence interval
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
 
-    ### TODO: return quantiles, times, calibration diagnostic, (what else?), as dictionary
+    # Compute calibration error
+    diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc")
+
+    ### TODO: return quantiles(?), times, (what else?), as dictionary
+
     return predictive, diagnostics
 
 
 def convergence_check(samples, acc_rate):
     conv = []
     for name, param in samples.items():
-        conv.append(trace_plot(param, name, plot=False))
+        conv.append(trace_plot(param, name))
+    
+    conv.append(trace_plot(acc_rate, "acceptance_rate"))
     
     return max(conv)
 
@@ -142,20 +149,21 @@ def trace_plot(variable, name, plot=False):
     t = len(cond) - np.argmin(np.flip(cond))
 
     # Create the two plots
-    fig, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
-    ax1.set_title(f"{name} trace plot")
-    ax1.grid()
-    ax1.plot(variable)
-    ax1.vlines(t, ymin=np.min(variable), ymax=np.max(variable), colors='g', linestyles='dashed', label="Convergence point")
-    ax2.set_title("Moving average of the rate of change")
-    ax2.grid()
-    ax2.scatter(x, av_r, color=col)
-    ax2.vlines(t, ymin=np.min(av_r), ymax=np.max(av_r), colors='g', linestyles='dashed', label="Convergence point")
-    
-    # Save plots
-    save_path = f'./results/plots/mcmc/'
-    Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
-    plt.savefig(f'{save_path}{name}.png')
-    plt.clf()
+    if plot:
+        fig, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
+        ax1.set_title(f"{name} trace plot")
+        ax1.grid()
+        ax1.plot(variable)
+        ax1.vlines(t, ymin=np.min(variable), ymax=np.max(variable), colors='g', linestyles='dashed', label="Convergence point")
+        ax2.set_title("Moving average of the rate of change")
+        ax2.grid()
+        ax2.scatter(x, av_r, color=col)
+        ax2.vlines(t, ymin=np.min(av_r), ymax=np.max(av_r), colors='g', linestyles='dashed', label="Convergence point")
+        
+        # Save plots
+        save_path = f'./results/plots/mcmc/'
+        Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
+        plt.savefig(f'{save_path}{name}.png')
+        plt.clf()
 
     return t
