@@ -28,4 +28,5 @@
 - [Multi-site Forecasting of Energy Time Series with Spatio-Temporal Graph Neural Networks](https://ieeexplore.ieee.org/document/9892160)
 - [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://people.eecs.berkeley.edu/~angelopoulos/publications/downloads/gentle_intro_conformal_dfuq.pdf)
 - [RNNs of RNNs: Recursive Construction of Stable Assemblies of Recurrent Neural Networks](https://arxiv.org/pdf/2106.08928.pdf)
--  
+- [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf)
+- 

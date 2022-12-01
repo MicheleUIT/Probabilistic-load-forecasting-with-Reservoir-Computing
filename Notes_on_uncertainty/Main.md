@@ -32,7 +32,7 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] retrieve acceptance rate
 	- [x] retrieve step size
 	- [x] plot trace graphs
-	- [ ] check how the Gelman Rubin factor is computed in Pyro → in pyro.ops.stats
+	- [x] check how the Gelman Rubin factor is computed in Pyro → in pyro.ops.stats
 	- [x] calibration
 	- [ ] autocorrelation
 	- [ ] effective sample size
