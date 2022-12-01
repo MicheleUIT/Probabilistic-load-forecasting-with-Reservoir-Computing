@@ -5,6 +5,7 @@ Sources:
 - [MCMC using Hamiltonian dynamics](https://arxiv.org/pdf/1206.1901.pdf)
 - [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf)
 - [Animation of MCMC](https://chi-feng.github.io/mcmc-demo/app.html)
+- [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/BDA3.pdf)
 - %%find better ones?%%
 
 MCMC is a sampling technique used to estimate some characteristics of a population, It's composed of [[Monte Carlo Markov Chain#^a1d63b|Monte Carlo]] and [[Monte Carlo Markov Chain#^f90134|Markov Chains]].
@@ -206,7 +207,7 @@ Problems of trace plots:
 
 #### Acceptance rates
 If the acceptance rate is too low, of course convergence is slow: the algorithm sticks in one place and rarely moves. If it's too high, it could mean that it's not converging or it's not mixing properly. Roughly, in an MH algorithm, *the acceptance rate should be around 50%*.
-To fix issues concerning the acceptance rate, one should change the proposal density (in terms of shape, variance, correlation), so that it more closely mathces the posterior.
+To fix issues concerning the acceptance rate, one should change the proposal density (in terms of shape, variance, correlation), so that it more closely matches the posterior.
 
 #### Autocorrelation
 Samples from MCMC are not independent (each sample in the chain depends only on the last one), and indeed there could be autocorrelation.
@@ -227,13 +228,33 @@ $$
 	\text{between variance}=\frac{n}{m-1}\sum_{i=1}^m(\theta_i-\bar{\theta})^2
 $$
 $$
-	\text{total variance}=\text{within-chain}+\text{between variances}
+	\text{total variance}=\frac{n-1}{n}\text{within-chain}+\frac{1}{n}\text{between variances}
 $$
 where $\theta_{ij}$ is the sampled parameter from chain $i$ at iteration $j$, $\bar{\theta}_i$ is the average value in chain $i$, and $\bar{\theta}$ is the overall average.
-The Gelman-Rubin factor is defined as
+The **Gelman-Rubin factor** is defined as
 $$
 	\hat{R}=\sqrt{\frac{\text{total}}{\text{within}}}.
 $$
 The idea is that, if the chains are convering, the between variance should disappear, and $\hat{R}$ should converge to 1.
 
 Again, if $\hat{R}$ is converging to 1 doesn't mean that the MCMC converged, because if all the chains are converging to the same mode you wouldn't know.
+
+To diagnose convergence and mixing, one could split each chains in half (after removing the warm-up iterations) and consider the two halves as separate runs. The idea is that if the chain has converged and properly mixed, also its two halves have. In this way you can comput the *split Gelman-Rubin factor*.
+
+#### Effective sample size
+Image to have 5 chains, initialised differently, each with 500 iterations and all of them reached convergence. Assume that the target distribution is known and it's a gaussian. In general, the 2500 samples from those 5 chains will not look the same as 2500 points sampled directly from the target distribution. This is due to within-sequence correlation: our 2500 draws are not independent.
+
+Only a portion of those 2500 points are equivalent to indipendent draws from the target distribution: that's called **effective sample size**. Its definition is
+$$
+	n_\text{eff}=\frac{mn}{1+2\sum_{t=0}^\infty\rho_t}
+$$
+where $\rho_t$ is the autocorrelation at lag $t$.
+
+An estimate of $\rho_t$ is
+$$
+	\hat{\rho}=1-\frac{V_t}{2\sigma}
+$$
+where $\sigma$ is the total variance and $V_t$ is the *variogram* at lag $t$, i.e.,
+$$
+	V_t=\frac{1}{m(n-t)}\sum_{j=1}^m\sum_{i=t+1}^n (\theta_{i,j}-\theta_{i-t,j})^2
+$$
