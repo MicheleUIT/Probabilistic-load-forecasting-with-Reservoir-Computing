@@ -32,8 +32,10 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] retrieve acceptance rate
 	- [x] retrieve step size
 	- [x] plot trace graphs
-	- [ ] check how the Gelman Rubin factor is computed in Pyro
-	- [ ] calibration
+	- [ ] check how the Gelman Rubin factor is computed in Pyro → in pyro.ops.stats
+	- [x] calibration
+	- [ ] autocorrelation
+	- [ ] effective sample size
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [ ] [stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (SSVS)
 		- [x] check if there has been further progress since 2018
