@@ -6,6 +6,7 @@ from time import process_time
 from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
+from pyro.ops.stats import autocorrelation
 from utils import check_calibration
 
 
@@ -35,7 +36,9 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
 
     num_iterations = num_iterations
 
-    # pyro.clear_param_store() # do we need to clear the param store first?
+    # Clear the param store first, if it was already used
+    clear_param_store()
+    
     start_time = process_time()
     for j in range(num_iterations):
         # calculate the loss and take a gradient step
@@ -63,13 +66,16 @@ def pred_SVI(model, guide, X, num_samples):
 
 
 def train_MCMC(model, X, Y):
+    ### FIXME: It seems that if the step size is too small the computation
+    # time gets very big, even if the acc. prob is high. Why is that?
+
     # Clear the param store first, if it was already used
     clear_param_store()
 
     # Use NUTS kernel
     nuts_kernel = NUTS(model)
 
-    # define a hook to log the acceptance rate and step size at each iteration
+    # Define a hook to log the acceptance rate and step size at each iteration
     ### NOTE: Does it work if num_chains > 1 ? I should check on the server
     step_size = []
     acc_rate = []
@@ -81,18 +87,26 @@ def train_MCMC(model, X, Y):
 
     mcmc = MCMC(nuts_kernel, num_samples=300, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
 
-    # run the MCMC and compute the training time
+    # Run the MCMC and compute the training time
     start_time = process_time()
-    ### FIXME: # It seems that if the step size is too small the computation
-    # time gets very big, even if the acc. prob is high. Why is that?
     mcmc.run(X, Y)
     train_time = process_time() - start_time
     print(f"MCMC run time: {train_time/60} minutes.")
 
+    # Get the split Gelman-Rubin factor and the effective sample size for each parameter
+    eff_sample = {}
+    GR_factor = {}
+    for n, v in list(mcmc.diagnostics().items())[:-2]:
+        eff_sample = v['n_eff']
+        GR_factor[n] = v['r_hat']
+
+    # Save diagnostics in dict
     diagnostics = {
         "step_size": np.asarray(step_size),
         "acceptance_rate": np.asarray(acc_rate),
-        "train_time": train_time
+        "train_time": train_time,
+        "effective_sample_size": eff_sample,
+        "split_gelman_rubin": GR_factor
     }
 
     return mcmc, diagnostics
