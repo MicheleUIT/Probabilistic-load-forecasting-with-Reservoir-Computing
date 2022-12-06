@@ -28,13 +28,13 @@ Extend the above on graphs, or time-dependant graphs.
 - [x] carefully fix the MCMC so that it works correctly
 	- [x] read paper on [[Monte Carlo Markov Chain#^8975bf|HMC]]
 	- [x] read chapter on the diagnostics of HMC
-- [ ] Implement the diagnostic tools for MCMC
+- [x] Implement the diagnostic tools for MCMC
 	- [x] retrieve acceptance rate
 	- [x] retrieve step size
 	- [x] plot trace graphs
 	- [x] check how the Gelman Rubin factor is computed in Pyro → in pyro.ops.stats
 	- [x] calibration
-	- [ ] autocorrelation
+	- [x] autocorrelation
 	- [x] effective sample size
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [ ] [stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (SSVS)
