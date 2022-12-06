@@ -114,9 +114,14 @@ def train_MCMC(model, X, Y):
 
 def pred_MCMC(model, mcmc, X, Y, diagnostics):
 
-    ### TODO: Compute other diagnostics related to convergence with 'samples'
     # Do I need to compute also the inference time?
     samples = mcmc.get_samples()
+
+    # Compute autocorrelation
+    autocorr = {}
+    for k, v in samples.items():
+        autocorr[k] = autocorrelation(v)
+    diagnostics["autocorrelation"] = autocorr
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
