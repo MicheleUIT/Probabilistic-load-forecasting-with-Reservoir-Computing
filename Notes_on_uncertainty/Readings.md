@@ -29,4 +29,5 @@
 - [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://people.eecs.berkeley.edu/~angelopoulos/publications/downloads/gentle_intro_conformal_dfuq.pdf)
 - [RNNs of RNNs: Recursive Construction of Stable Assemblies of Recurrent Neural Networks](https://arxiv.org/pdf/2106.08928.pdf)
 - [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf)
+- [A Novel Framework of Reservoir Computing for Deterministic and Probabilistic Wind Power Forecasting](https://ieeexplore.ieee.org/abstract/document/8601366?casa_token=NIe5LD3sFqUAAAAA:bo5aqkHGU1qp1FbAkvqCaAY5Lmimmqvbu1_lMON9MYOujlEJfJgy8dkZ-L8NH3lUqQ-RyXNbUg)
 - 
