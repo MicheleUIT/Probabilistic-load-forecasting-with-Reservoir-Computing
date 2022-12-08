@@ -108,11 +108,11 @@ $$
 You can show that the chain satisfies detailed balance wrt $\pi$, i.e., $\pi_iQ_{ij}=\pi_jQ_{ji}$. (Notice that you don't need to know $\pi$, knowing likelihood x prior is enough.)
 
 Notes:
-- the chain takes some time before reaching the stationary distribution, it's called *burn-in time*;
+- the chain takes some time before reaching the stationary distribution, it's called *burn-in or warmup time*;
 - different definitions of the acceptance probability lead to different MCMC;
 - the algorithm can be extended to continuous state space;
 - a measure of the performance of MCMC is the **correlation time** of a statistic, say $\langle f(x)\rangle_\pi$, $$ \tau_f:=\frac{1}{C_f(0)}\sum_{t=-\infty}^{+\infty}\,C_f(t)dt, \quad \text{where} \quad C_f(t)=\mathbb{E}_\pi[f(X_t)f(X_0)]-(\mathbb{E}[f(X_t)])^2. $$
-(I'm not sure about this definition: shouldn't $C_f$ be the correlation between $t$ and 0? What is dt?)
+(It's an autocorrelation with lag)
 
 ## Hamiltonian MC
 
@@ -136,7 +136,7 @@ $$
 $$
 
 ### Properties
-- Hamiltonian dynamics is _reversible_, an this implies that MCMC updates following the dynamics leave the target distribution invariant %%(why?)%%
+- Hamiltonian dynamics is _reversible_, and this implies that MCMC updates following the dynamics leave the target distribution invariant %%(why?)%%
 - The Hamiltonian is invariant (energy is conserved), this implies that the acceptance probability of an update is 1 if $H$ is kept invariant
 - It preserves volume in the state space, so in an MCMC we don't need to take into account a possible change in volume when computing the acceptance probability
 - Simplecticness
