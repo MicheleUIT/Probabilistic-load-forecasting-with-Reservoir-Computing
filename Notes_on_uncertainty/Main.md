@@ -39,8 +39,8 @@ Extend the above on graphs, or time-dependant graphs.
 - [ ] explore different dimensionality reduction mechanism (PCA, kPCA)
 	- [ ] [stochastic search variable selection](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553) (SSVS)
 		- [x] check if there has been further progress since 2018
-		- [ ] can we use VI instead of MCMC?
-		- [ ] as spike-and-slab distribution I use a [[Dimensionality reduction#^cc4054|horseshoe distribution]], be sure that my implementation is correct, it looks different from the original paper
+		- [x] can we use VI instead of MCMC?
+		- [x] as spike-and-slab distribution I use a [[Dimensionality reduction#^cc4054|horseshoe distribution]], be sure that my implementation is correct, it looks different from the original paper
 		- [ ] how to use a discrete Bernoulli?
 	- [ ] PCA
 		- [ ] does PCA affect the correlation of guide samples?
@@ -62,3 +62,4 @@ Extend the above on graphs, or time-dependant graphs.
 	- [ ] would it be possible to use RNN with VI?
 	- [ ] would it be possible to use RNN with MCMC? Probably you can't do the backpropagation...
 - [ ] Compare models with Bayes factor?
+- [ ] Use [Sparse bayesian linear regression](https://pyro.ai/examples/sparse_regression.html)?
