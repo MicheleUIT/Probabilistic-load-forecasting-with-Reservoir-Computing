@@ -23,6 +23,7 @@ os.environ["WANDB_MODE"]="offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
+# os.environ["CUDA_VISIBLE_DEVICES"]='0'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = "cpu"
 
@@ -34,7 +35,7 @@ def main():
 
     # Build Bayesian model
     model = BayesianModel(t_m, config, device)
-    model.render_model(model_args=(torch.rand(1,20), torch.rand(1,1)))
+    model.render_model(model_args=(torch.rand(1,20), torch.rand(1,1)), filename="model.png")
 
     # Build a guide for SVI
     ### TODO: I should customize the guide
@@ -42,10 +43,10 @@ def main():
     pyro.render_model(guide, model_args=(torch.rand(1,20), torch.rand(1,1)), render_distributions=True, filename="guide.png")
 
     # Produce embeddings with ESN
-    Ytr, train_embedding, val_embedding, test_embedding, Yte = run_esn(config.dataset, dim_reduction=config.dim_reduction) # what's the validity for?
+    Ytr, train_embedding, val_embedding, Yte, test_embedding = run_esn(config.dataset, dim_reduction=config.dim_reduction) # what's the validity for?
 
     # Do inference
-    inference(config, model, guide, X_train=train_embedding, Y_train=Ytr, X_test=test_embedding, Y_test=Yte)
+    predictive, diagnostics = inference(config, model, guide, X_train=train_embedding, Y_train=Ytr, X_test=test_embedding, Y_test=Yte)
 
 
 if __name__ == "__main__":

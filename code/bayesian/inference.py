@@ -22,6 +22,8 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
         raise ValueError(f"{config.inference} method not implemented.")
     else:
         raise ValueError(f"{config.inference} method not implemented.")
+    
+    return predictive, diagnostics
 
 
 
@@ -70,6 +72,7 @@ def train_MCMC(model, X, Y):
     # time gets very big, even if the acc. prob is high. Why is that?
 
     # Clear the param store first, if it was already used
+    # NOTE: This shouldn't be necessary for MCMC
     clear_param_store()
 
     # Use NUTS kernel

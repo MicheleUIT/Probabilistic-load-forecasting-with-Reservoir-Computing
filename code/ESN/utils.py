@@ -28,4 +28,4 @@ def run_esn(dataset, dim_reduction=True):
         return Ytr, train_embedding, val_embedding, test_embedding, Yte
     else:
         # Return the raw reservoir states
-        return Ytr, train_states, val_states, test_states, Yte
+        return Ytr, train_states, val_states, Yte, test_states

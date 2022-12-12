@@ -104,13 +104,81 @@ class BayesianModel(PyroModule):
         return distributions
 
 
-    def render_model(self, model_args):
-        return pyro.render_model(self, model_args, render_distributions=True, filename="model.png")
+    def render_model(self, model_args, filename=None):
+        return pyro.render_model(self, model_args, render_distributions=True, filename=filename)
+
+
+class BayesianLinear_m(PyroModule):
+    """
+    Linear Bayesian model with no activations for SSVS built "manually"
+    """
+    def __init__(self, in_features, out_features, device, sigma=1.):
+        super().__init__()
+
+        mu = torch.tensor(0., device=device)
+        sigma = torch.tensor(sigma, device=device)
+
+        self.weights = PyroSample(dist.Normal(mu, sigma).expand((in_features, out_features)).to_event(2))
+        self.bias = PyroSample(dist.Normal(mu, sigma).expand((out_features,)).to_event(1))
+
+    def forward(self, x):
+        return x @ self.weights + self.bias
+
+
+class BayesianLinear_t(PyroModule):
+    """
+    Linear Bayesian model with no activations for SSVS using torch.nn.Linear
+    """
+    def __init__(self, in_features, out_features, device, sigma=1.):
+        super().__init__()
+
+        mu = torch.tensor(0., device=device)
+        sigma = torch.tensor(sigma, device=device)
+
+        self.linear = torch.nn.Sequential(torch.nn.Linear(in_features, out_features)).to(device)
+        pyro.nn.module.to_pyro_module_(self.linear)
+
+        setattr(self.linear[0].weight, 'weight', PyroSample(dist.Normal(mu, torch.tensor(1., device=device)).expand([in_features, out_features]).to_event(2)))
+        setattr(self.linear[0].bias, 'bias', PyroSample(dist.Normal(mu, sigma).expand([out_features]).to_event(1)))
+
+    def forward(self, x):
+        return self.linear(x)
+
+
+class HorseshoeSSVS(PyroModule):
+    """
+    SSVS implemented with an horseshoe continuous RV
+
+    :param type: string to choose linear layer type
+    """
+    def __init__(self, in_features, out_features, type, device):
+        super().__init__()
+
+        self.device = device
+
+        # TODO: what is the difference between these two linear layers?
+        BL = BayesianLinear_m if type=='m' else BayesianLinear_t
+
+        self.linear1 = BL(in_features, out_features, self.device)
+        self.linear2 = BL(in_features, out_features, self.device, 0.001)
+
+    def forward(self, x, y=None):
+        tau = pyro.sample("tau", dist.HalfCauchy(1.)).to(self.device)
+        lamb = pyro.sample("lamb", dist.HalfCauchy(1.)).to(self.device)
+        sig = lamb*tau
+        gamma = pyro.sample("gamma", dist.Normal(0, sig)).to(self.device)
+
+        sigma = pyro.sample("sigma", dist.Uniform(0., 10.)).to(self.device)
+        mean = (self.linear1(x)*gamma + self.linear2(x)*gamma).squeeze(-1)
+
+        with pyro.plate("data", x.shape[0], device=self.device):
+            obs = pyro.sample("obs", dist.Normal(mean, sigma), obs=y)
+        return mean
     
 
 ### TODO: Define a full custom guide
 
-### TODO: Define a model for the Stochastic Search Variable Selection
+### TODO: Define a model for the discrete Stochastic Search Variable Selection
 
 
 # # should I define a full custom guide?
