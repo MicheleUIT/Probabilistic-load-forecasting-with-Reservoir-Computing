@@ -7,7 +7,7 @@ from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 from pyro.ops.stats import autocorrelation
-from utils import check_calibration
+from bayesian.utils import check_calibration
 
 
 def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
@@ -17,7 +17,7 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
         predictive, diagnostics = pred_SVI()
     elif config.inference == "mcmc":
         mcmc, diagnostics = train_MCMC(model, X_train, Y_train)
-        predictive, diagnostics = pred_MCMC(model, mcmc, X_test, Y_test, diagnostics)
+        predictive, diagnostics = pred_MCMC(model, mcmc, X_test, Y_test, config.plot, diagnostics)
     elif config.inference == "q_regr":
         raise ValueError(f"{config.inference} method not implemented.")
     else:
@@ -115,7 +115,7 @@ def train_MCMC(model, X, Y):
     return mcmc, diagnostics
 
 
-def pred_MCMC(model, mcmc, X, Y, diagnostics):
+def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
 
     # Do I need to compute also the inference time?
     samples = mcmc.get_samples()
@@ -128,7 +128,7 @@ def pred_MCMC(model, mcmc, X, Y, diagnostics):
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
-    warmup = convergence_check(samples, acc_rate)
+    warmup = convergence_check(samples, acc_rate, plot)
 
     ### TODO: Cut samples at warmup computed above
     # I probably need to loop through all samples and cut them since it's a dict
@@ -140,25 +140,26 @@ def pred_MCMC(model, mcmc, X, Y, diagnostics):
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
 
     # Compute calibration error
-    diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc")
+    diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)
 
     ### TODO: return quantiles(?), times, (what else?), as dictionary
 
     return predictive, diagnostics
 
 
-def convergence_check(samples, acc_rate):
+def convergence_check(samples, acc_rate, plot):
     conv = []
     for name, param in samples.items():
-        conv.append(trace_plot(param, name))
+        conv.append(trace_plot(param, name, plot))
     
-    conv.append(trace_plot(acc_rate, "acceptance_rate"))
+    conv.append(trace_plot(acc_rate, "acceptance_rate", plot))
     
     return max(conv)
 
 
 def trace_plot(variable, name, plot=False):
     # Compute a moving average of the rate of change of ´variable´
+    # FIXME: if variable is on gpu it must be first moved to cpu, then transformed to numpy array
     r = np.diff(variable)
     av_r = np.convolve(r, np.ones(10)/10, mode='valid')
     x = np.asarray(range(len(av_r)))

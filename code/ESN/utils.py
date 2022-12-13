@@ -1,10 +1,15 @@
 import json
 import ESN.esnet as esnet
 
+from torch import from_numpy
 from dataset.data_loaders import load_dataset, generate_datasets
 
 
-def run_esn(dataset, dim_reduction=True):
+def run_esn(dataset, device, dim_reduction=True):
+    """
+    Run ESN and returns either the reservoir states, or the embeddings produce by dimensionality reduction
+    """
+
     X, Y = load_dataset(dataset)
 
     # Set ESN hyperparams
@@ -22,10 +27,20 @@ def run_esn(dataset, dim_reduction=True):
                                                                                                                 validation=True,
                                                                                                                 Xval=Xval,
                                                                                                                 Yval=Yval)
-    
+
     if dim_reduction==True:
         # Return emedding of states via some dimensionality reduction technique
-        return Ytr, train_embedding, val_embedding, test_embedding, Yte
+        return to_torch(Ytr, device), to_torch(train_embedding, device), to_torch(val_embedding, device), to_torch(test_embedding, device), to_torch(Yte, device)
     else:
         # Return the raw reservoir states
-        return Ytr, train_states, val_states, Yte, test_states
+        return to_torch(Ytr, device), to_torch(train_states, device), to_torch(val_states, device), to_torch(Yte, device), to_torch(test_states, device)
+
+
+def to_torch(array, device):
+    """
+    Transform numpy arrays to torch tensors and move them to `device`
+    """
+    
+    dtype = 'float32'
+    array = array.astype(dtype)
+    return from_numpy(array).to(device)
