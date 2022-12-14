@@ -173,6 +173,20 @@ HMC proceeds in two steps:
 
 HMC is ergodic, so it shouldn't get trapped in a small region of the state space, but it can still happen for some choice of $L$ and $\varepsilon$ (for example, with almost-periodic trajectories).
 
+## No-U-Turn Sampler (NUTS)
+
+^6980e9
+
+HMC has one flaw: the tuning of hyperparameters $L$ (number of steps) and $\varepsilon$ (stepsize).
+NUTS remove the need to choose $L$ and $\varepsilon$ as well.
+
+In order to fix $L$, NUTS computes the inner product between the current momentum $p$ and the difference between the current "position" $q$ and the initial one $\tilde{q}$:
+$$
+	p\cdot (q-\tilde{q})
+$$
+When it becomes less than zero, it means that the trajectory is going back towards the starting point.
+
+
 ## Diagnostics
 (work in progress, read [this](https://link.springer.com/content/pdf/10.1007/978-0-387-71265-9_6.pdf))
 
