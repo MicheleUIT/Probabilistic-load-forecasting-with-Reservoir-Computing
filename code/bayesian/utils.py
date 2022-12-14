@@ -12,7 +12,7 @@ def check_calibration(predictive, Y, folder, plot=False):
     optionally the calibration graph
     """
     # Compute predicted CDF
-    predicted_cdf = np.mean(predictive["obs"].cpu().numpy().squeeze() <= Y.squeeze(), axis=0)
+    predicted_cdf = np.mean(predictive["obs"].cpu().numpy().squeeze() <= Y.cpu().numpy().squeeze(), axis=0)
 
     # Compute empirical CDF
     empirical_cdf = np.zeros(len(predicted_cdf))

@@ -88,7 +88,7 @@ def train_MCMC(model, X, Y):
         # averaged over the time step n
         acc_rate.append(kernel._mean_accept_prob) # Log acceptance rate
 
-    mcmc = MCMC(nuts_kernel, num_samples=300, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
+    mcmc = MCMC(nuts_kernel, num_samples=100, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
 
     # Run the MCMC and compute the training time
     start_time = process_time()
@@ -117,7 +117,7 @@ def train_MCMC(model, X, Y):
 
 def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
 
-    # Do I need to compute also the inference time?
+    # TODO: Do I need to compute also the inference time?
     samples = mcmc.get_samples()
 
     # Compute autocorrelation
@@ -149,17 +149,30 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
 
 def convergence_check(samples, acc_rate, plot):
     conv = []
+
+    if plot:
+        # This is needed to avoid the "RuntimeWarning: More than 20 figures have been opened"
+        # when calling trace_plot in the for loop
+        _, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
+
+    # FIXME: plots of different variables are overlapping, I should completely clear the figure before going on
     for name, param in samples.items():
-        conv.append(trace_plot(param, name, plot))
+        param = param.squeeze()
+        if param.dim()>1:
+            for i in range(param.shape[1]):
+                conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", (ax1, ax2), plot))
+        else:
+            conv.append(trace_plot(param.cpu(), name, (ax1, ax2), plot))
     
-    conv.append(trace_plot(acc_rate, "acceptance_rate", plot))
+    conv.append(trace_plot(acc_rate, "acceptance_rate", (ax1, ax2), plot))
+    if plot:
+        plt.clf()
     
     return max(conv)
 
 
-def trace_plot(variable, name, plot=False):
+def trace_plot(variable, name, axis, plot=False):
     # Compute a moving average of the rate of change of ´variable´
-    # FIXME: if variable is on gpu it must be first moved to cpu, then transformed to numpy array
     r = np.diff(variable)
     av_r = np.convolve(r, np.ones(10)/10, mode='valid')
     x = np.asarray(range(len(av_r)))
@@ -173,20 +186,20 @@ def trace_plot(variable, name, plot=False):
 
     # Create the two plots
     if plot:
-        fig, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
+        ax1, ax2 = axis # retrieve axis
         ax1.set_title(f"{name} trace plot")
         ax1.grid()
         ax1.plot(variable)
-        ax1.vlines(t, ymin=np.min(variable), ymax=np.max(variable), colors='g', linestyles='dashed', label="Convergence point")
+        ax1.vlines(t, ymin=variable.min(), ymax=variable.max(), colors='g', linestyles='dashed', label="Convergence point")
         ax2.set_title("Moving average of the rate of change")
         ax2.grid()
         ax2.scatter(x, av_r, color=col)
-        ax2.vlines(t, ymin=np.min(av_r), ymax=np.max(av_r), colors='g', linestyles='dashed', label="Convergence point")
+        ax2.vlines(t, ymin=av_r.min(), ymax=av_r.max(), colors='g', linestyles='dashed', label="Convergence point")
         
         # Save plots
         save_path = f'./results/plots/mcmc/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
         plt.savefig(f'{save_path}{name}.png')
-        plt.clf()
+        plt.cla()
 
     return t
