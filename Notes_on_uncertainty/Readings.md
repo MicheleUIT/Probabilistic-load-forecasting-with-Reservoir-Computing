@@ -11,6 +11,7 @@
 - [Re-visiting the echo state property](https://www.researchgate.net/publication/230656358_Re-visiting_the_echo_state_property), go to [[Echo State Networks#^a82cd8|Echo State Property]]
 - [Bayesian statistics and modelling](https://sci-hub.se/https://doi.org/10.1038/s43586-020-00001-2), go to [[Dimensionality reduction#^452ca4|SSVS]]
 - [Handling Sparsity via the Horseshoe](https://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf), go to [[Dimensionality reduction#^cc4054|SSVS]]
+- [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf), go to [[Monte Carlo Markov Chain#^6980e9|NUTS]]
 - 
 
 
@@ -28,6 +29,5 @@
 - [Multi-site Forecasting of Energy Time Series with Spatio-Temporal Graph Neural Networks](https://ieeexplore.ieee.org/document/9892160)
 - [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://people.eecs.berkeley.edu/~angelopoulos/publications/downloads/gentle_intro_conformal_dfuq.pdf)
 - [RNNs of RNNs: Recursive Construction of Stable Assemblies of Recurrent Neural Networks](https://arxiv.org/pdf/2106.08928.pdf)
-- [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf)
 - [A Novel Framework of Reservoir Computing for Deterministic and Probabilistic Wind Power Forecasting](https://ieeexplore.ieee.org/abstract/document/8601366?casa_token=NIe5LD3sFqUAAAAA:bo5aqkHGU1qp1FbAkvqCaAY5Lmimmqvbu1_lMON9MYOujlEJfJgy8dkZ-L8NH3lUqQ-RyXNbUg)
 - 
