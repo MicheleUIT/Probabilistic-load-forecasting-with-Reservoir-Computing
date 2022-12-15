@@ -47,7 +47,7 @@ def main():
     Ytr, train_embedding, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction) # what's the validity for?
 
     # Do inference
-    predictive, diagnostics = inference(config, model, guide, X_train=train_embedding, Y_train=Ytr, X_test=test_embedding, Y_test=Yte)
+    _, predictive, diagnostics = inference(config, model, guide, X_train=train_embedding, Y_train=Ytr, X_test=test_embedding, Y_test=Yte, num_samples=1000)
 
 
 if __name__ == "__main__":

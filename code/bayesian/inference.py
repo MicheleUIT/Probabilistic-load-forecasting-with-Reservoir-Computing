@@ -7,23 +7,23 @@ from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 from pyro.ops.stats import autocorrelation
-from bayesian.utils import check_calibration
+from bayesian.utils import check_calibration, check_convergence
 
 
-def inference(config, model, guide, X_train, Y_train, X_test, Y_test):
+def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_samples):
     if config.inference == "svi":
         ### TODO: implement SVI
         train_SVI()
         predictive, diagnostics = pred_SVI()
     elif config.inference == "mcmc":
-        mcmc, diagnostics = train_MCMC(model, X_train, Y_train)
+        mcmc, diagnostics = train_MCMC(model, X_train, Y_train, num_samples)
         predictive, diagnostics = pred_MCMC(model, mcmc, X_test, Y_test, config.plot, diagnostics)
     elif config.inference == "q_regr":
         raise ValueError(f"{config.inference} method not implemented.")
     else:
         raise ValueError(f"{config.inference} method not implemented.")
     
-    return predictive, diagnostics
+    return mcmc, predictive, diagnostics
 
 
 
@@ -67,7 +67,7 @@ def pred_SVI(model, guide, X, num_samples):
 #########################################
 
 
-def train_MCMC(model, X, Y):
+def train_MCMC(model, X, Y, num_samples):
     ### FIXME: It seems that if the step size is too small the computation
     # time gets very big, even if the acc. prob is high. Why is that?
 
@@ -88,7 +88,7 @@ def train_MCMC(model, X, Y):
         # averaged over the time step n
         acc_rate.append(kernel._mean_accept_prob) # Log acceptance rate
 
-    mcmc = MCMC(nuts_kernel, num_samples=100, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
+    mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
 
     # Run the MCMC and compute the training time
     start_time = process_time()
@@ -128,7 +128,8 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
-    warmup = convergence_check(samples, acc_rate, plot)
+    warmup = check_convergence(samples, acc_rate, plot)
+    print(f"MCMC converged at {warmup} steps.")
 
     ### TODO: Cut samples at warmup computed above
     # I probably need to loop through all samples and cut them since it's a dict
@@ -145,61 +146,3 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
     ### TODO: return quantiles(?), times, (what else?), as dictionary
 
     return predictive, diagnostics
-
-
-def convergence_check(samples, acc_rate, plot):
-    conv = []
-
-    if plot:
-        # This is needed to avoid the "RuntimeWarning: More than 20 figures have been opened"
-        # when calling trace_plot in the for loop
-        _, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
-
-    # FIXME: plots of different variables are overlapping, I should completely clear the figure before going on
-    for name, param in samples.items():
-        param = param.squeeze()
-        if param.dim()>1:
-            for i in range(param.shape[1]):
-                conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", (ax1, ax2), plot))
-        else:
-            conv.append(trace_plot(param.cpu(), name, (ax1, ax2), plot))
-    
-    conv.append(trace_plot(acc_rate, "acceptance_rate", (ax1, ax2), plot))
-    if plot:
-        plt.clf()
-    
-    return max(conv)
-
-
-def trace_plot(variable, name, axis, plot=False):
-    # Compute a moving average of the rate of change of ´variable´
-    r = np.diff(variable)
-    av_r = np.convolve(r, np.ones(10)/10, mode='valid')
-    x = np.asarray(range(len(av_r)))
-
-    # Change color when ´av_r´ goes below 5%
-    cond = np.abs(av_r/(np.max(av_r)-np.min(av_r)))<0.05
-    col = np.where(cond, 'r', 'b')
-
-    # Threshold for convergence set where ´av_r´ is consistently under 5%
-    t = len(cond) - np.argmin(np.flip(cond))
-
-    # Create the two plots
-    if plot:
-        ax1, ax2 = axis # retrieve axis
-        ax1.set_title(f"{name} trace plot")
-        ax1.grid()
-        ax1.plot(variable)
-        ax1.vlines(t, ymin=variable.min(), ymax=variable.max(), colors='g', linestyles='dashed', label="Convergence point")
-        ax2.set_title("Moving average of the rate of change")
-        ax2.grid()
-        ax2.scatter(x, av_r, color=col)
-        ax2.vlines(t, ymin=av_r.min(), ymax=av_r.max(), colors='g', linestyles='dashed', label="Convergence point")
-        
-        # Save plots
-        save_path = f'./results/plots/mcmc/'
-        Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
-        plt.savefig(f'{save_path}{name}.png')
-        plt.cla()
-
-    return t
