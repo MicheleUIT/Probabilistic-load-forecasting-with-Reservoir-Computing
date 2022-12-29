@@ -17,6 +17,8 @@ config = {
             "parameters": [[0,1],[0,10]],
             "dim_reduction": True,
             "inference": "mcmc",
+            "lr": 0.03,
+            "num_iterations": 120,
             "plot": False
             }
 

@@ -13,7 +13,7 @@ from bayesian.utils import check_calibration, check_convergence
 def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_samples):
     if config.inference == "svi":
         ### TODO: implement SVI
-        train_SVI()
+        diagnostics = train_SVI(model, guide, X_train, Y_train, config.lr, config.num_iterations)
         predictive, diagnostics = pred_SVI()
     elif config.inference == "mcmc":
         mcmc, diagnostics = train_MCMC(model, X_train, Y_train, num_samples)
@@ -36,8 +36,6 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
     optim = Adam({"lr": lr})
     svi = SVI(model, guide, optim, loss=Trace_ELBO())
 
-    num_iterations = num_iterations
-
     # Clear the param store first, if it was already used
     clear_param_store()
     
@@ -51,11 +49,17 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
 
     guide.requires_grad_(False)
 
+    diagnostics = {
+        "train_time": train_time,
+    }
 
-def pred_SVI(model, guide, X, num_samples):
+    return diagnostics
+
+
+def pred_SVI(model, guide, X, num_samples, diagnostics):
     predictive = Predictive(model, guide=guide, num_samples=num_samples)(x=X, y=None)
 
-    diagnostics = {}
+    # diagnostics[] = 
 
     # return quantiles, times, calibration diagnostic, (what else?), as dictionary
     return predictive, diagnostics
