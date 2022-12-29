@@ -11,17 +11,14 @@
 - [Re-visiting the echo state property](https://www.researchgate.net/publication/230656358_Re-visiting_the_echo_state_property), go to [[Echo State Networks#^a82cd8|Echo State Property]]
 - [Bayesian statistics and modelling](https://sci-hub.se/https://doi.org/10.1038/s43586-020-00001-2), go to [[Dimensionality reduction#^452ca4|SSVS]]
 - [Handling Sparsity via the Horseshoe](https://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf), go to [[Dimensionality reduction#^cc4054|SSVS]]
-<<<<<<< Updated upstream
 - [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf), go to [[Monte Carlo Markov Chain#^6980e9|NUTS]]
-=======
 - [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43), not useful
 - [Five Things You Should Know about Quantile Regression](https://support.sas.com/resources/papers/proceedings17/SAS0525-2017.pdf), go to [[Quantile regression]]
->>>>>>> Stashed changes
+- [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://arxiv.org/pdf/2107.07511.pdf), go to [[Conformal inference]]
 - 
 
 
 ## To read:
-- [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://arxiv.org/pdf/2107.07511.pdf)
 - [On Calibration of Modern Neural Networks](https://arxiv.org/pdf/1706.04599.pdf)
 - [Revisiting the Calibration of Modern Neural Networks](https://proceedings.neurips.cc/paper/2021/file/8420d359404024567b5aefda1231af24-Paper.pdf)
 - [Calibrating Deep Neural Networks using Focal Loss](https://proceedings.neurips.cc/paper/2020/file/aeb7b30ef1d024a76f21a1d40e30c302-Paper.pdf)
@@ -31,7 +28,6 @@
 - [Connecting reservoir computing with statistical forecasting and deep neural networks](https://www.nature.com/articles/s41467-021-27715-5)
 - [Next generation reservoir computing](https://www.nature.com/articles/s41467-021-25801-2)
 - [Multi-site Forecasting of Energy Time Series with Spatio-Temporal Graph Neural Networks](https://ieeexplore.ieee.org/document/9892160)
-- [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://people.eecs.berkeley.edu/~angelopoulos/publications/downloads/gentle_intro_conformal_dfuq.pdf)
 - [RNNs of RNNs: Recursive Construction of Stable Assemblies of Recurrent Neural Networks](https://arxiv.org/pdf/2106.08928.pdf)
 - [A Novel Framework of Reservoir Computing for Deterministic and Probabilistic Wind Power Forecasting](https://ieeexplore.ieee.org/abstract/document/8601366?casa_token=NIe5LD3sFqUAAAAA:bo5aqkHGU1qp1FbAkvqCaAY5Lmimmqvbu1_lMON9MYOujlEJfJgy8dkZ-L8NH3lUqQ-RyXNbUg)
 - 
