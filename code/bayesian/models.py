@@ -89,7 +89,8 @@ class BayesianModel(PyroModule):
                 except:
                     distributions.append(dist.Normal)
                 else:
-                    distributions.append(dist.Normal(p[0],p[1]))
+                    distributions.append(dist.Normal(torch.tensor(float(p[0]), device=self.device),
+                                                    torch.tensor(float(p[1]), device=self.device)))
                 
             elif distr_list[i] == "unif":
                 try:
@@ -97,7 +98,8 @@ class BayesianModel(PyroModule):
                 except:
                     distributions.append(dist.Uniform)
                 else:
-                    distributions.append(dist.Uniform(p[0],p[1]))
+                    distributions.append(dist.Uniform(torch.tensor(float(p[0]), device=self.device),
+                                                    torch.tensor(float(p[1]), device=self.device)))
             else:
                 raise ValueError(f"{distr_list[i]['name']} prior distribution not defined.")
         
