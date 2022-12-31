@@ -4,7 +4,7 @@ Code: [GitHub code](https://github.com/yaringal)
 
 # Introduction
 In many scenarios it's important to be able to tell how certain we are about a model output: is it making sensible predictions or guessing at random?
-If we train a model on a dataset, and then provide a datapoint that lies outside the training data distribution, the model should give me a prediction, but also tell me its uncertainty/confidence about it: if it's under-confident or falsely over-confident.
+If we train a model on a dataset, and then provide a data point that lies outside the training data distribution, the model should give me a prediction, but also tell me its uncertainty/confidence about it: if it's under-confident or falsely over-confident.
 
 ### Types of uncertainties:
 
@@ -45,7 +45,7 @@ $$
 $$
 	p(y^*|x^*,X,Y)=\int p(y^*|x^*,\omega)p(\omega|X,Y)\,d\omega
 $$
-Problem: being able to solve analytically $p(Y|X)=\int p(Y|X,\omega)p(\omega)d\omega$ is not often possible.
+Problem: being able to solve analytically $p(Y|X)=\int p(Y|X,\omega)p(\omega)d\omega$ is often impossible.
 
 ## Variational inference
 You approximate the true posterior with a simpler variational distribution $p(\omega|X,Y)\simeq q_\theta(\omega)$, and minimize the KL divergence w.r.t. $\theta$ 
@@ -72,7 +72,7 @@ $$
 \end{align}
 $$
 
->The Bayesian modelling strategies aims at solving an integral (marginalisation). Variational inference becomes an optimization problem, so we compute derivatives (still not the same as in DL, since here we optimise over distributions, not single values).
+>The Bayesian modelling strategies aim at solving an integral (marginalisation). Variational inference becomes an optimization problem, so we compute derivatives (still not the same as in DL, since here we optimise over distributions, not single values).
 
 # Bayesian neural network
 
