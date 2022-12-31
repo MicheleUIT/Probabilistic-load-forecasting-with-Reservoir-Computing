@@ -30,4 +30,5 @@
 - [Multi-site Forecasting of Energy Time Series with Spatio-Temporal Graph Neural Networks](https://ieeexplore.ieee.org/document/9892160)
 - [RNNs of RNNs: Recursive Construction of Stable Assemblies of Recurrent Neural Networks](https://arxiv.org/pdf/2106.08928.pdf)
 - [A Novel Framework of Reservoir Computing for Deterministic and Probabilistic Wind Power Forecasting](https://ieeexplore.ieee.org/abstract/document/8601366?casa_token=NIe5LD3sFqUAAAAA:bo5aqkHGU1qp1FbAkvqCaAY5Lmimmqvbu1_lMON9MYOujlEJfJgy8dkZ-L8NH3lUqQ-RyXNbUg)
+- [All You Need is a Good Functional Prior for Bayesian Deep Learning](https://jmlr.org/papers/v23/20-1340.html)
 - 
