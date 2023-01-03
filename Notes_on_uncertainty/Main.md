@@ -2,7 +2,7 @@
 ## Ideas
 ### Comparative study
 1) Add a probabilistic regression on top of the [[Echo State Networks|ESN]].
-2) Compare Bayesian methods ([[Monte Carlo Markov Chain|MCMC]] and [[Uncertainty in Deep Learning#^1595b1|Variational Inference]]) and frequentist methods (quantile regression, ...)
+2) Compare Bayesian methods ([[Markov Chain Monte Carlo|MCMC]] and [[Uncertainty in Deep Learning#^1595b1|Variational Inference]]) and frequentist methods (quantile regression, ...)
 	- what other frequentist methods?
 	- I need to find out on what ground I should lead the comparison, i.e., what parameters to explore and what metrics (e.g., how to compare the confidence intervals of the different techniques? statistical validity of the interval?)
 	- If possible, analyse separately aleatoric and epistemic uncertainty (see [[Uncertainty in Deep Learning#^f25fa8|here]])
@@ -26,7 +26,7 @@ Extend the above on graphs, or time-dependant graphs.
 	- [x] find a way to implement more layers
 	- [x] play around with configurations to make it work
 - [x] carefully fix the MCMC so that it works correctly
-	- [x] read paper on [[Monte Carlo Markov Chain#^8975bf|HMC]]
+	- [x] read paper on [[Markov Chain Monte Carlo#^8975bf|HMC]]
 	- [x] read chapter on the diagnostics of HMC
 - [x] Implement the diagnostic tools for MCMC
 	- [x] retrieve acceptance rate

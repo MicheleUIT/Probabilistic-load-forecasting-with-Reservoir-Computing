@@ -44,7 +44,7 @@ The posterior distribution $\pi(\gamma|Y)$ contains the relevant information for
 - priors must be chosen so that the final posterior makes sense (it is actually higher for more interesting models)
 - it should be possible to compute at least where $\pi(\gamma|Y)$ gets higher values.
 
-To explore $\pi(\gamma|Y)$ one can use [[Monte Carlo Markov Chain#^6e6df4|MCMC]] (like Gibbs sampler or HMC). The idea is that, even if $p$ is large, the $\gamma$ values of interest, i.e., those with higher probability, will appear more frequently and quicker. SSVS uses Gibbs sampler.
+To explore $\pi(\gamma|Y)$ one can use [[Markov Chain Monte Carlo#^6e6df4|MCMC]] (like Gibbs sampler or HMC). The idea is that, even if $p$ is large, the $\gamma$ values of interest, i.e., those with higher probability, will appear more frequently and quicker. SSVS uses Gibbs sampler.
 
 Can we use SVI?
 

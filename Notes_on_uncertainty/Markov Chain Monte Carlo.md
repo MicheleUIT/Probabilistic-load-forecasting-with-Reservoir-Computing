@@ -8,7 +8,7 @@ Sources:
 - [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/BDA3.pdf)
 - %%find better ones?%%
 
-MCMC is a sampling technique used to estimate some characteristics of a population, It's composed of [[Monte Carlo Markov Chain#^a1d63b|Monte Carlo]] and [[Monte Carlo Markov Chain#^f90134|Markov Chains]].
+MCMC is a sampling technique used to estimate some characteristics of a population, It's composed of [[Markov Chain Monte Carlo#^a1d63b|Monte Carlo]] and [[Markov Chain Monte Carlo#^f90134|Markov Chains]].
 
 ## Monte Carlo
 
@@ -30,9 +30,9 @@ Sometimes though it could be hard to sample from $f$, that's when we use Markov 
 
 A Markov Chain is a stochastic process $X=\{X_0,X_1,\dots\}$, where $X_i$ is a discrete RV, that satisfies the Markov property:
 $$
-	P(X_{n+1}=k|X_n=k_n,X_{n-1}=k_{n-1},\dots,X_1=k_1)=P(X_{n+1}=k|X_n=k_n)
+	P(X_{n+1}=k|X_n=k_n,X_{n-1}=k_{n-1},\dots,X_1=k_1)=P(X_{n+1}=k|X_n=k_n),
 $$
-i.e., the $(n+1)$-th state of the system depends only on th $n$-th one.
+i.e., the $(n+1)$-th state of the system depends only on the $n$-th one.
 
 ### Stationary distributions
 Assume that at time $n$ the distribution over the states of the system is $S_i(n)=P(X_n=i)$ (e.g., if $S(n)=(0.9,0,0.1)$, it means that the system is more likely to be in state $(1,0,0)$). You can write the distribution at time step $n+1$ as
@@ -61,7 +61,7 @@ $$
 
 **NB**: The stationary condition is $S_i=\sum_j S_jQ_{ji}$, in the detailed balance equation above there is no sum.
 
-Notice that if $X$ is a Markov chain with distribution $S$ that satisfies detailed balance, then $S$ is stationary.  This is good because solving [[Monte Carlo Markov Chain#^f94fe6|the equation above]] is simpler than directly searching for a stationary distribution.
+Notice that if $X$ is a Markov chain with distribution $S$ that satisfies detailed balance, then $S$ is stationary.  This is good because solving [[Markov Chain Monte Carlo#^f94fe6|the equation above]] is simpler than directly searching for a stationary distribution.
 
 If the chain satisfies detailed balance, then $Q$ can be symmetrized and its spectrum gives information on the time scales dynamics of the chain (see more [here](https://cims.nyu.edu/~holmes/teaching/asa19/handout_Lecture3_2019.pdf#page=13&zoom=100,89,628)).
 
@@ -86,7 +86,7 @@ Cons:
 - MCMC doesn't perform well in approximating multimodal distributions
 - can be computationally expensive
 
-How to be sure that the Markov chain converges to the wanted probability distribution? We use [[Monte Carlo Markov Chain#^098190|detailed balance]].
+How to be sure that the Markov chain converges to the wanted probability distribution? We use [[Markov Chain Monte Carlo#^098190|detailed balance]].
 
 ### Metropolis-Hasting algorithm
 Imagine that the target discrete probability distribution is $\pi$. Take any Markov chain whose state space contains the support of $\pi$, with transition matrix $H$ according to the following steps:

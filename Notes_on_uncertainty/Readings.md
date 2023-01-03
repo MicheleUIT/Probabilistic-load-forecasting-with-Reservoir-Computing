@@ -2,16 +2,16 @@
 - [[Accurate uncertainties for Deep Learning using calibrated regression]]
 - [[Uncertainty in Deep Learning]]
 - [Bayesian inference problem, MCMC and variational inference](https://towardsdatascience.com/bayesian-inference-problem-mcmc-and-variational-inference-25a8aa9bce29) 
-- [Monte Carlo Markov Chain (MCMC) explained](https://towardsdatascience.com/monte-carlo-markov-chain-mcmc-explained-94e3a6c8de11), go to [[Monte Carlo Markov Chain]]
-- [MCMC using Hamiltonian dynamics](https://arxiv.org/pdf/1206.1901.pdf), go to [[Monte Carlo Markov Chain#^229702|HMC]]
-- [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf), go to [[Monte Carlo Markov Chain#^87ebef|HMC]]
+- [Monte Carlo Markov Chain (MCMC) explained](https://towardsdatascience.com/monte-carlo-markov-chain-mcmc-explained-94e3a6c8de11), go to [[Markov Chain Monte Carlo]]
+- [MCMC using Hamiltonian dynamics](https://arxiv.org/pdf/1206.1901.pdf), go to [[Markov Chain Monte Carlo#^229702|HMC]]
+- [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf), go to [[Markov Chain Monte Carlo#^87ebef|HMC]]
 - [Deep echo state networks with uncertainty quantification for spatio-temporal forecasting](https://onlinelibrary.wiley.com/doi/epdf/10.1002/env.2553), go to [[Dimensionality reduction#^67e5c3|Dimensionality reduction]]
 - [Approaches for Bayesian variable selection](https://www3.stat.sinica.edu.tw/statistica/oldpdf/A7n26.pdf), go to [[Dimensionality reduction#^452ca4|SSVS]]
 - [Pyro: Deep Universal Probabilistic Programming](https://jmlr.org/papers/volume20/18-403/18-403.pdf)
 - [Re-visiting the echo state property](https://www.researchgate.net/publication/230656358_Re-visiting_the_echo_state_property), go to [[Echo State Networks#^a82cd8|Echo State Property]]
 - [Bayesian statistics and modelling](https://sci-hub.se/https://doi.org/10.1038/s43586-020-00001-2), go to [[Dimensionality reduction#^452ca4|SSVS]]
 - [Handling Sparsity via the Horseshoe](https://proceedings.mlr.press/v5/carvalho09a/carvalho09a.pdf), go to [[Dimensionality reduction#^cc4054|SSVS]]
-- [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf), go to [[Monte Carlo Markov Chain#^6980e9|NUTS]]
+- [The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo](https://arxiv.org/pdf/1111.4246.pdf), go to [[Markov Chain Monte Carlo#^6980e9|NUTS]]
 - [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43), not useful
 - [Five Things You Should Know about Quantile Regression](https://support.sas.com/resources/papers/proceedings17/SAS0525-2017.pdf), go to [[Quantile regression]]
 - [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://arxiv.org/pdf/2107.07511.pdf), go to [[Conformal inference]]
