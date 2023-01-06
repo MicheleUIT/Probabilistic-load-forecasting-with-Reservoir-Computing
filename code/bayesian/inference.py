@@ -150,3 +150,17 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
     ### TODO: return quantiles(?), times, (what else?), as dictionary
 
     return predictive, diagnostics
+    
+
+
+####################################
+#       Quantile regression        #
+####################################
+
+
+def train_QR():
+    pass
+
+
+def pred_QR():
+    pass
