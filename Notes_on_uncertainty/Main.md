@@ -48,6 +48,8 @@ Extend the above on graphs, or time-dependant graphs.
 - [ ] Use frequentist approaches to quantify uncertainties
 	- [ ] Read about quantile regression
 	- [ ] Use enseble ESN for epistemic uncertainties?
+	- [ ] [jackknife+](https://www.stat.cmu.edu/~ryantibs/papers/jackknife.pdf) (it's distribution indipendent)
+- [ ] conformal predictions (you don't need to do assumptions on distributions, like  jackknife+, is it frequentist?)
 - [ ] Change also priors, likelihoods, posterior:
 	- [ ] how to decide?
 	- [ ] check other works on Bayesian RNN how they do it
