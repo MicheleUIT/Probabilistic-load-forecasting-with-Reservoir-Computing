@@ -3,5 +3,6 @@ Notes_on_uncertainty/.obsidian/
 *.png
 wandb
 test.py
+test.ipynb
 code/.ipynb_checkpoints/
 dump/
