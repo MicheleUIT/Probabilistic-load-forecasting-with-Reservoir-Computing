@@ -1,7 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-from pathlib import Path
 from time import process_time
 from pyro import clear_param_store
 from pyro.optim import Adam
@@ -10,29 +8,13 @@ from pyro.ops.stats import autocorrelation
 from bayesian.utils import check_calibration, check_convergence
 
 
-def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_samples):
-    if config.inference == "svi":
-        ### TODO: implement SVI
-        diagnostics = train_SVI(model, guide, X_train, Y_train, config.lr, config.num_iterations)
-        predictive, diagnostics = pred_SVI()
-    elif config.inference == "mcmc":
-        mcmc, diagnostics = train_MCMC(model, X_train, Y_train, num_samples)
-        predictive, diagnostics = pred_MCMC(model, mcmc, X_test, Y_test, config.plot, diagnostics)
-    elif config.inference == "q_regr":
-        raise ValueError(f"{config.inference} method not implemented.")
-    else:
-        raise ValueError(f"{config.inference} method not implemented.")
-    
-    return mcmc, predictive, diagnostics
-
-
 
 #########################################
 #   Stochastic Variational Inference    #
 #########################################
 
 def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
-    # should I change also optimizer and loss?
+    # NOTE: should I change also optimizer and loss?
     optim = Adam({"lr": lr})
     svi = SVI(model, guide, optim, loss=Trace_ELBO())
 
@@ -150,17 +132,3 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
     ### TODO: return quantiles(?), times, (what else?), as dictionary
 
     return predictive, diagnostics
-    
-
-
-####################################
-#       Quantile regression        #
-####################################
-
-
-def train_QR():
-    pass
-
-
-def pred_QR():
-    pass
