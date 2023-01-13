@@ -5,7 +5,7 @@ from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 from pyro.ops.stats import autocorrelation
-from bayesian.utils import check_calibration, check_convergence
+from inference.bayesian.utils import check_calibration, check_convergence
 
 
 

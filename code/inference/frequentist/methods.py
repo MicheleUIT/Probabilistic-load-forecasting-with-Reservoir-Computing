@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from time import process_time
-from bayesian.models import TorchModel
+from inference.bayesian.models import TorchModel
 
 
 
@@ -12,6 +12,8 @@ from bayesian.models import TorchModel
 
 
 def train_QR(model, X, Y, q, lr, epochs):
+    model.train()
+
     torch_optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
 
     start_time = process_time()
@@ -33,8 +35,9 @@ def train_QR(model, X, Y, q, lr, epochs):
 
 
 def pred_QR(model, X, Y):
-    pass
+    model.eval()
+    return model(X)
 
 
 def quantile_loss(q, output, target):
-    return torch.maximum(q*(target-output), (q-1)*(output-target))
+    return torch.maximum(q*(target-output), (q-1)*(target-output))
