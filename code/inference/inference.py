@@ -4,9 +4,8 @@ from inference.frequentist.methods import train_QR, pred_QR
 
 def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_samples):
     if config.inference == "svi":
-        ### TODO: implement SVI
         diagnostics = train_SVI(model, guide, X_train, Y_train, config.lr, config.num_iterations)
-        predictive, diagnostics = pred_SVI()
+        predictive, diagnostics = pred_SVI(model, guide, X_test, Y_test, num_samples, config.plot, diagnostics)
         return predictive, diagnostics
 
     elif config.inference == "mcmc":

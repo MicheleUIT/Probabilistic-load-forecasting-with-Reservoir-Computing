@@ -40,12 +40,23 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
     return diagnostics
 
 
-def pred_SVI(model, guide, X, num_samples, diagnostics):
+def pred_SVI(model, guide, X, Y, num_samples, plot, diagnostics):
+
+    # Perform inference
     predictive = Predictive(model, guide=guide, num_samples=num_samples)(x=X, y=None)
 
-    # diagnostics[] = 
+    # Quantiles
+    target_interval = 0.95  # draw and compute the 95% confidence interval
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+    diagnostics["quantiles"] = [q_low, q_hi]
 
-    # return quantiles, times, calibration diagnostic, (what else?), as dictionary
+    # Compute calibration error
+    diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)
+
+    # Continuous ranked probability score
+    crps = eval_crps(predictive['obs'], Y.squeeze())
+    diagnostics["crps"] = crps
+
     return predictive, diagnostics
 
 
@@ -56,12 +67,6 @@ def pred_SVI(model, guide, X, num_samples, diagnostics):
 
 
 def train_MCMC(model, X, Y, num_samples):
-    ### FIXME: It seems that if the step size is too small the computation
-    # time gets very big, even if the acc. prob is high. Why is that?
-
-    # Clear the param store first, if it was already used
-    # NOTE: This shouldn't be necessary for MCMC
-    clear_param_store()
 
     # Use NUTS kernel
     nuts_kernel = NUTS(model)
@@ -121,7 +126,7 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
     ### TODO: Cut samples at warmup computed above
     # I probably need to loop through all samples and cut them since it's a dict
     # Perform inference
-    predictive = Predictive(model, samples)(x=X, y=None) # num_samples?
+    predictive = Predictive(model, samples)(x=X, y=None)
 
     # Quantiles
     target_interval = 0.95  # draw and compute the 95% confidence interval
