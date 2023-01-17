@@ -5,6 +5,8 @@ from pyro import clear_param_store
 from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 from pyro.ops.stats import autocorrelation
+from pyro.contrib.forecast.evaluate import eval_crps
+
 from inference.bayesian.utils import check_calibration, check_convergence
 
 
@@ -103,7 +105,6 @@ def train_MCMC(model, X, Y, num_samples):
 
 def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
 
-    # TODO: Do I need to compute also the inference time?
     samples = mcmc.get_samples()
 
     # Compute autocorrelation
@@ -125,10 +126,13 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
     # Quantiles
     target_interval = 0.95  # draw and compute the 95% confidence interval
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+    diagnostics["quantiles"] = [q_low, q_hi]
 
     # Compute calibration error
     diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)
 
-    ### TODO: return quantiles(?), times, (what else?), as dictionary
+    # Continuous ranked probability score
+    crps = eval_crps(predictive['obs'], Y.squeeze())
+    diagnostics["crps"] = crps
 
     return predictive, diagnostics
