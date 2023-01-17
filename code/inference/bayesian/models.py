@@ -180,8 +180,6 @@ class HorseshoeSSVS(PyroModule):
 
 ### TODO: Define a full custom guide
 
-### TODO: Define a model for the discrete Stochastic Search Variable Selection
-
 
 # # should I define a full custom guide?
 # # when defining the guide, put constraints on variances
