@@ -15,6 +15,7 @@
 - [Quantile Regression](https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43), not useful
 - [Five Things You Should Know about Quantile Regression](https://support.sas.com/resources/papers/proceedings17/SAS0525-2017.pdf), go to [[Quantile regression]]
 - [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://arxiv.org/pdf/2107.07511.pdf), go to [[Conformal inference]]
+- [Strictly Proper Scoring Rules, Prediction, and Estimation](https://sites.stat.washington.edu/raftery/Research/PDF/Gneiting2007jasa.pdf), also [this](https://www.lokad.com/continuous-ranked-probability-score), go to [[Uncertainty in Deep Learning#^dd3ff3|CRPS]]
 - 
 
 

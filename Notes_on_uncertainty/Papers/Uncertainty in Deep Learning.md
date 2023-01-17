@@ -74,6 +74,17 @@ $$
 
 >The Bayesian modelling strategies aim at solving an integral (marginalisation). Variational inference becomes an optimization problem, so we compute derivatives (still not the same as in DL, since here we optimise over distributions, not single values).
 
+## CRPS metric
+
+^dd3ff3
+
+A metric to measure how far a probability distribution is from true value is the *continuous rank probability score*
+$$
+	\text{CSRS}(F,x)=\int_{-\infty}^{+\infty}(F(y)-\theta(y-x))^2dx
+$$
+where $F$ is the cumulative distribution, $\theta$ is Heaviside function and $x$ is the observation, i.e., the true value.
+
+
 # Bayesian neural network
 
 ^5e8409
