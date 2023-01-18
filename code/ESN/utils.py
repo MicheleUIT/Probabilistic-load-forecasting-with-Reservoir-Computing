@@ -30,10 +30,10 @@ def run_esn(dataset, device, dim_reduction=True):
 
     if dim_reduction==True:
         # Return emedding of states via some dimensionality reduction technique
-        return to_torch(Ytr, device), to_torch(train_embedding, device), to_torch(val_embedding, device), to_torch(test_embedding, device), to_torch(Yte, device)
+        return to_torch(Ytr, device).squeeze(), to_torch(train_embedding, device), to_torch(val_embedding, device), to_torch(test_embedding, device), to_torch(Yte, device).squeeze()
     else:
         # Return the raw reservoir states
-        return to_torch(Ytr, device), to_torch(train_states, device), to_torch(val_states, device), to_torch(Yte, device), to_torch(test_states, device)
+        return to_torch(Ytr, device).squeeze(), to_torch(train_states, device), to_torch(val_states, device), to_torch(Yte, device).squeeze(), to_torch(test_states, device)
 
 
 def to_torch(array, device):
