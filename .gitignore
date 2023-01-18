@@ -6,3 +6,4 @@ test.py
 test.ipynb
 code/.ipynb_checkpoints/
 dump/
+.vscode/
