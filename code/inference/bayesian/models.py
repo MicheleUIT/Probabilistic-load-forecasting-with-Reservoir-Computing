@@ -16,7 +16,7 @@ class TorchModel(torch.nn.Module):
     :param list widths: List of layers' widths.
     :param string activation: String specifying the activation function to use.
     """
-    def __init__(self, widths, activation):
+    def __init__(self, widths, activation, quantiles=None):
         super().__init__()
         self.layers = torch.nn.ModuleList()
 
@@ -31,7 +31,8 @@ class TorchModel(torch.nn.Module):
             self.layers.append(torch.nn.Linear(widths[i], widths[i+1]))
             self.layers.append(a)
         
-        self.layers.append(torch.nn.Linear(widths[-2], widths[-1]))
+        output = widths[-1] if quantiles==None else len(quantiles)
+        self.layers.append(torch.nn.Linear(widths[-2], output))
 
     def forward(self, x):
         for f in self.layers:

@@ -14,8 +14,8 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_sample
         return mcmc, predictive, diagnostics
 
     elif config.inference == "q_regr":
-        diagnostics = train_QR(model, X_train, Y_train, config.quantile, config.lr, config.num_iterations)
-        predictive = pred_QR(model, X_test, Y_test)
+        diagnostics = train_QR(model, X_train, Y_train, config.quantiles, config.lr, config.num_iterations)
+        predictive, diagnostics = pred_QR(model, X_test, Y_test, diagnostics)
         return predictive, diagnostics
 
     else:

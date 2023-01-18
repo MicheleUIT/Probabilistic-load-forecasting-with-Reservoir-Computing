@@ -69,7 +69,7 @@ def plot_forecast(predictive, Y, name):
     plt.grid()
 
     # Show and save plot
-    save_path = f'./results/plots/mcmc/'
+    save_path = f'./results/plots/'
     Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
     plt.savefig(f'{save_path}{name}.png')
     plt.show()
