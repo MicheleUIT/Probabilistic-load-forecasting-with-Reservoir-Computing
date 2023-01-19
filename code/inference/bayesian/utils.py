@@ -5,23 +5,23 @@ from pathlib import Path
 
 
 
-def check_convergence(samples, acc_rate, plot):
+def check_convergence(samples, acc_rate, inference_name, plot=False):
     conv = []
 
     for name, param in samples.items():
         param = param.squeeze()
         if param.dim()>1:
             for i in range(param.shape[1]):
-                conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", plot))
+                conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", plot, inference_name))
         else:
-            conv.append(trace_plot(param.cpu(), name, plot))
+            conv.append(trace_plot(param.cpu(), name, plot, inference_name))
     
-    conv.append(trace_plot(acc_rate, "acceptance_rate", plot))
+    conv.append(trace_plot(acc_rate, "acceptance_rate", plot, inference_name))
     
     return max(conv)
 
 
-def trace_plot(variable, name, plot=False):
+def trace_plot(variable, name, plot, inference_name):
     # Compute a moving average of the rate of change of ´variable´
     r = np.diff(variable)
     av_r = np.convolve(r, np.ones(10)/10, mode='valid')
@@ -47,7 +47,7 @@ def trace_plot(variable, name, plot=False):
         ax2.vlines(t, ymin=av_r.min(), ymax=av_r.max(), colors='g', linestyles='dashed', label="Convergence point")
         
         # Save plots
-        save_path = f'./results/plots/mcmc/convergence/'
+        save_path = f'./results/plots/{inference_name}/convergence/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
         plt.savefig(f'{save_path}{name}.png')
         plt.close(fig)
