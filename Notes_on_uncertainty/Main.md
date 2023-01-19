@@ -20,6 +20,9 @@
 ## Novel study
 Extend the above on graphs, or time-dependant graphs.
 
+## Venues
+- [Applied Energy](https://www.sciencedirect.com/journal/applied-energy)
+
 
 ## To do list
 - [x] Use a deeper NN
@@ -47,9 +50,10 @@ Extend the above on graphs, or time-dependant graphs.
 	- [ ] Laplacian eigenmaps
 - [ ] Use frequentist approaches to quantify uncertainties
 	- [x] Read about quantile regression
-	- [ ] Use enseble ESN for epistemic uncertainties?
-	- [ ] [jackknife+](https://www.stat.cmu.edu/~ryantibs/papers/jackknife.pdf) (it's distribution indipendent)
-- [ ] conformal predictions (you don't need to do assumptions on distributions, like  jackknife+, is it frequentist?)
+	- [x] Use enseble ESN for epistemic uncertainties? -> No, it would only reflect the epistemic uncertainties
+	- [ ] [jackknife+](https://www.stat.cmu.edu/~ryantibs/papers/jackknife.pdf) (it's distribution indipendent) -> is it possible to use it on time-series?
+	- [ ] dropout
+	- [ ] conformal predictions (you don't need to do assumptions on distributions, like  jackknife+) -> it's hard to adapt for time-series
 - [x] Implement [[Uncertainty in Deep Learning#^dd3ff3|CRPS]]
 - [ ] Change also priors, likelihoods, posterior:
 	- [ ] how to decide?
