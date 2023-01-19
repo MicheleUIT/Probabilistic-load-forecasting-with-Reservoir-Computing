@@ -108,7 +108,7 @@ def train_MCMC(model, X, Y, num_samples):
     return mcmc, diagnostics
 
 
-def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
+def pred_MCMC(model, mcmc, X, Y, plot, diagnostics, inference_name):
 
     samples = mcmc.get_samples()
 
@@ -120,7 +120,7 @@ def pred_MCMC(model, mcmc, X, Y, plot, diagnostics):
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
-    warmup = check_convergence(samples, acc_rate, plot)
+    warmup = check_convergence(samples, acc_rate, inference_name, plot)
     print(f"MCMC converged at {warmup} steps.")
 
     ### TODO: Cut samples at warmup computed above
