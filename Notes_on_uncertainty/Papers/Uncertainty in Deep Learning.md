@@ -80,7 +80,7 @@ $$
 
 A metric to measure how far a probability distribution is from true value is the *continuous rank probability score*
 $$
-	\text{CSRS}(F,x)=\int_{-\infty}^{+\infty}(F(y)-\theta(y-x))^2dx
+	\text{CRPS}(F,x)=\int_{-\infty}^{+\infty}(F(y)-\theta(y-x))^2dy
 $$
 where $F$ is the cumulative distribution, $\theta$ is Heaviside function and $x$ is the observation, i.e., the true value.
 

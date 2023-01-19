@@ -2,7 +2,7 @@ from inference.bayesian.methods import train_SVI, pred_SVI, train_MCMC, pred_MCM
 from inference.frequentist.methods import train_QR, pred_QR
 
 
-def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_samples, inference_name):
+def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_samples, inference_name, quantiles=None):
     if config.inference == "svi":
         diagnostics = train_SVI(model, guide, X_train, Y_train, config.lr, config.num_iterations)
         predictive, diagnostics = pred_SVI(model, guide, X_test, Y_test, num_samples, config.plot, diagnostics)
@@ -14,8 +14,8 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_sample
         return mcmc, predictive, diagnostics
 
     elif config.inference == "q_regr":
-        diagnostics = train_QR(model, X_train, Y_train, config.quantiles, config.lr, config.num_iterations)
-        predictive, diagnostics = pred_QR(model, X_test, Y_test, diagnostics)
+        diagnostics = train_QR(model, X_train, Y_train, config.lr, config.num_iterations, quantiles)
+        predictive, diagnostics = pred_QR(model, X_test, Y_test, config.plot, diagnostics, quantiles)
         return predictive, diagnostics
 
     else:
