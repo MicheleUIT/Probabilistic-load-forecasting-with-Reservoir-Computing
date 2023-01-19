@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from time import process_time
-from inference.frequentist.utils import compute_coverage_len
+from inference.frequentist.utils import compute_coverage_len, check_calibration
 
 
 
@@ -11,16 +11,16 @@ from inference.frequentist.utils import compute_coverage_len
 ####################################
 
 
-def train_QR(model, X, Y, quantiles, lr, epochs):
+def train_QR(model, X, Y, lr, epochs, quantiles):
+
     model.train()
 
     torch_optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
 
-
     start_time = process_time()
     for epoch in range(epochs):
         torch_optimizer.zero_grad()
-        loss = quantile_loss(quantiles, model(X), Y.unsqueeze(dim=-1))
+        loss = quantile_loss(quantiles, model(X), Y)
         loss.backward()
         torch_optimizer.step()
         if epoch % np.ceil(epochs/10) == 0:
@@ -34,16 +34,26 @@ def train_QR(model, X, Y, quantiles, lr, epochs):
     return diagnostics
 
 
-def pred_QR(model, X, Y, diagnostics):
+def pred_QR(model, X, Y, plot, diagnostics, quantiles):
+
     model.eval()
 
     # Perform inference
     predictive = model(X).detach().squeeze()
 
-    # Check calibration
+    # 0.95 quantiles
+    q_low = predictive[:,0].cpu().numpy()
+    q_hi = predictive[:,-1].cpu().numpy()
+    diagnostics["quantiles"] = [q_low, q_hi]
+
+    # Check coverage
+    # TODO: is it useful?
     if predictive.dim() > 1:
-        _, avg_length = compute_coverage_len(Y.cpu().numpy(), predictive[:,0].cpu().numpy(), predictive[:,2].cpu().numpy())
-        diagnostics["cal_error"] = avg_length
+        _, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
+        diagnostics["avg_length"] = avg_length
+
+    # Compute calibration error
+    diagnostics["cal_error"] = check_calibration(predictive, Y, quantiles, "q_regr", plot=plot)
 
     return predictive, diagnostics
 
@@ -51,6 +61,7 @@ def pred_QR(model, X, Y, diagnostics):
 def quantile_loss(quantiles, output, target):
     losses = []
     for i, q in enumerate(quantiles):
-        losses.append(torch.max(q*(target-output[:,i]), (q-1)*(target-output[:,i])))
-    loss = torch.mean(torch.sum(torch.cat(losses, dim=1), dim=1))
+        error = target-output[:,i]
+        losses.append(torch.max(q*error, (q-1)*error))
+    loss = torch.mean(torch.sum(torch.stack(losses), dim=-1))
     return loss
