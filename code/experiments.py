@@ -78,5 +78,5 @@ for s in range(config.seed):
 
 
 df = pd.DataFrame({"seed": range(config.seed), "train_times": times, "cal_errors": cal_errors, "CRPS": crpss})
-with pd.ExcelWriter(f"results/results_{config.dataset}_{config.inference}.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
-    df.to_excel(writer, sheet_name=f"sheet_name", index=False) 
+with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
+    df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 
