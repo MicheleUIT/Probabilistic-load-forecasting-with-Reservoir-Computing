@@ -1,0 +1,29 @@
+program: experiments.py
+method: bayes
+project: "bayes_rc"
+metric:
+    goal: minimize
+    name: AUC
+
+    
+parameters:
+    dataset:
+        value: "acea"
+    model_widths:
+        value: [50, 10, 1]
+    activation:
+        value: "tanh"
+    distributions:
+        value: ["gauss", "unif", "gauss"]
+    parameters:
+        value: [[0,1],[0,10]]
+    dim_reduction:
+        value: False
+    inference:
+        value: "svi"
+    num_iterations:
+        value: 100
+    lr:
+        value: 0.03
+    seed:
+        value: 100
