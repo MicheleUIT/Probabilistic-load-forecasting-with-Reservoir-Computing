@@ -1,5 +1,5 @@
 program: experiments.py
-method: bayes
+method: grid
 project: "bayes_rc"
 metric:
     goal: minimize
@@ -22,8 +22,8 @@ parameters:
     inference:
         value: "svi"
     num_iterations:
-        value: 100
+        value: 50
     lr:
         value: 0.03
     seed:
-        value: 100
+        value: 10
