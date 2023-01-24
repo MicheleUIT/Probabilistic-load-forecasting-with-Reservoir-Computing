@@ -7,3 +7,4 @@ test.ipynb
 code/.ipynb_checkpoints/
 dump/
 .vscode/
+*.xlsx
