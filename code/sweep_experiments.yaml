@@ -3,7 +3,7 @@ method: bayes
 project: "bayes_rc"
 metric:
     goal: minimize
-    name: AUC
+    name: crps
 
     
 parameters:
