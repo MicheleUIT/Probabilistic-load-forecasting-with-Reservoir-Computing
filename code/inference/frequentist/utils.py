@@ -17,7 +17,8 @@ def compute_coverage_len(y_test, y_lower, y_upper):
 
 
 def plot_forecast(predictive, Y):
-    q_low, mean, q_hi = predictive[:,0].cpu().numpy(), predictive[:,19].cpu().numpy(), predictive[:,-1].cpu().numpy()
+    mean_index = int(predictive.shape[1]/2 - 1)
+    q_low, mean, q_hi = predictive[:,0].cpu().numpy(), predictive[:,mean_index].cpu().numpy(), predictive[:,-1].cpu().numpy()
 
     fig = plt.figure(figsize=(15,5))
     plt.plot(Y.cpu()[:200], label='true value', color='k')
@@ -64,6 +65,7 @@ def check_calibration(predictive, Y, quantiles, folder, plot=False):
         save_path = './results/plots/' + folder + '/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
         plt.savefig(f'{save_path}' + 'calibration' + '.png')
+        plt.show()
         plt.clf()
     
     return cal_error

@@ -27,7 +27,7 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
     for j in range(num_iterations):
         # calculate the loss and take a gradient step
         loss = svi.step(X, Y)
-        if j % 20 == 0:
+        if j % np.ceil(num_iterations/10) == 0:
             print("[iteration %04d] loss: %.4f" % (j + 1, loss / Y.shape[0]))
     train_time = process_time() - start_time
 
