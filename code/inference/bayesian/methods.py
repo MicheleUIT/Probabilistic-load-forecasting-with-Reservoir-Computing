@@ -41,7 +41,7 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
 
     diagnostics = {
         "train_time": train_time,
-        "final_loss": float((loss / Y.shape[0]).detach().cpu())
+        "final_loss": loss / Y.shape[0]
     }
 
     return diagnostics
