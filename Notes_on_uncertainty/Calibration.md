@@ -9,7 +9,7 @@ Using [[Uncertainty in Deep Learning#^5e8409|BNN]] uncertainty estimates are oft
 Here they extend a post-processing technique, previously introduced for classification tasks, to calibrate the output of regression.
 The idea is to train a "calibrating" model $R:[0,1]\to[0,1]$ on top of a pre-trained classifier so that $R\circ H$ is calibrated.
 
-**Notation**: Within the paper, they use $\mathbb{I}\{\dots\}$ to indicate the "pythonic" casting from a bool to a integer, so it's 1 if the condition within the parentheses is satisfied, otherwise it's 0. See [[Accurate uncertainties for Deep Learning using calibrated regression#^6faa0e|comment]] to understand how it translates for time-series.
+**Notation**: Within the paper, they use $\mathbb{I}\{\dots\}$ to indicate the "pythonic" casting from a bool to a integer, so it's 1 if the condition within the parentheses is satisfied, otherwise it's 0. See [[Calibration#^6faa0e|comment]] to understand how it translates for time-series.
 
 ## Calibrated classification
 Consider binary classification, with data $x_t,y_t\in\mathcal{X}\times\mathcal{Y}$, where $\mathcal{Y}=\{0,1\}$. A forecaster is a function $H$ that outputs a probability distribution, $H:x_t\mapsto F_t(y)$. If the forecaster is calibrated, we expect that if it assigns a probability of 80% to an event, than that event should occur 80% of the time (i.e., for about 80% of the samples $\{x_t\}$, since those are i.i.d.). In formula:
