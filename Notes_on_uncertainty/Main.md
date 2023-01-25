@@ -63,7 +63,7 @@ Extend the above on graphs, or time-dependant graphs.
 - [ ] Compare ESN with Bayesian LSTM (check https://github.com/manuwhs/BayesianRNN)
 - [ ] Compare also with the [time-series forecaster](https://pyro.ai/examples/forecasting_i.html9) by Pyro (later on)
 - [ ] Add more datasets
-	- [ ] [this](https://github.com/fabridamicelli/kuramoto](https://github.com/fabridamicelli/kuramoto) and [this](https://github.com/gravins/NumGraph](https://github.com/gravins/NumGraph) are synthetic
+	- [ ] [this](https://github.com/fabridamicelli/kuramoto) and [this](https://github.com/gravins/NumGraph) are synthetic
 	- [ ] like [this](https://www.kaggle.com/code/mfaaris/3-ways-to-deal-with-time-series-forecasting)
 - [ ] Say something about the advantage of using RC with a Bayesian approach instead of RNN:
 	- [ ] would it be possible to use RNN with VI?
