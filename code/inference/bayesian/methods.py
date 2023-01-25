@@ -6,6 +6,7 @@ from pyro.optim import Adam
 from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 from pyro.ops.stats import autocorrelation
 from pyro.contrib.forecast.evaluate import eval_crps
+from tqdm import trange
 
 from inference.bayesian.utils import check_calibration, check_convergence
 
@@ -24,11 +25,16 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
     clear_param_store()
     
     start_time = process_time()
-    for j in range(num_iterations):
-        # calculate the loss and take a gradient step
-        loss = svi.step(X, Y)
-        if j % np.ceil(num_iterations/10) == 0:
-            print("[iteration %04d] loss: %.4f" % (j + 1, loss / Y.shape[0]))
+
+    with trange(num_iterations) as t:
+        for j in t:
+            # calculate the loss and take a gradient step
+            loss = svi.step(X, Y)
+
+            # display progress bar
+            t.set_description(f"Epoch {j+1}")
+            t.set_postfix({"loss":loss / Y.shape[0]})
+
     train_time = process_time() - start_time
 
     guide.requires_grad_(False)

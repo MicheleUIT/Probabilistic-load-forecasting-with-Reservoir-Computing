@@ -2,6 +2,7 @@ import torch
 import numpy as np
 
 from time import process_time
+from tqdm import trange
 from inference.frequentist.utils import compute_coverage_len, check_calibration
 
 
@@ -18,13 +19,18 @@ def train_QR(model, X, Y, lr, epochs, quantiles):
     torch_optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
 
     start_time = process_time()
-    for epoch in range(epochs):
-        torch_optimizer.zero_grad()
-        loss = quantile_loss(quantiles, model(X), Y)
-        loss.backward()
-        torch_optimizer.step()
-        if epoch % np.ceil(epochs/10) == 0:
-            print("[iteration %04d] loss: %.6f" % (epoch + 1, loss / Y.shape[0]))
+
+    with trange(epochs) as t:
+        for epoch in t:
+            torch_optimizer.zero_grad()
+            loss = quantile_loss(quantiles, model(X), Y)
+            loss.backward()
+            torch_optimizer.step()
+
+            # display progress bar
+            t.set_description(f"Epoch {epoch+1}")
+            t.set_postfix({"loss":float(loss / Y.shape[0])})
+
     train_time = process_time() - start_time
 
     diagnostics = {
