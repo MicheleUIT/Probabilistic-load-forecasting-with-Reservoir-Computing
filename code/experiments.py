@@ -2,10 +2,12 @@ import pyro
 import torch
 import wandb
 import os
+import json
 
 import pandas as pd
 
 from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
+from pathlib import Path
 from inference.bayesian.models import TorchModel, BayesianModel
 from inference.inference import inference
 from ESN.utils import run_esn
@@ -21,7 +23,8 @@ config = {
             "inference": "svi",
             "lr": 0.03,
             "num_iterations": 100,
-            "plot": False
+            "plot": False,
+            "seed": 1
             }
 
 # os.environ["WANDB_MODE"]="offline"
@@ -36,8 +39,18 @@ if torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-# Run ESN and get its state
-Ytr, train_embedding, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
+# Save/Load ESN state
+n_internal_units = json.load(open('ESN/configs/ESN_hyperparams.json', 'r'))['n_internal_units']
+save_path = './ESN/saved/' + f'{config.dataset}/dim_red_{config.dim_reduction}/'
+Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
+file_path = save_path + f'esn_states_{n_internal_units}units.pt'
+
+if os.path.isfile(file_path):
+    Ytr, train_embedding, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
+else:
+    Ytr, train_embedding, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
+    torch.save([Ytr, train_embedding, val_embedding, Yte, test_embedding], file_path)
+
 
 times = []
 cal_errors = []
