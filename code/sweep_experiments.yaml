@@ -1,9 +1,9 @@
 program: experiments.py
-method: grid
+method: bayes
 project: "bayes_rc"
 metric:
     goal: minimize
-    name: crps
+    name: m_crps
 
     
 parameters:
@@ -22,8 +22,10 @@ parameters:
     inference:
         value: "svi"
     num_iterations:
-        value: 50
+        min: 30
+        max: 500
     lr:
-        value: 0.03
+        min: 0.0001
+        max: 0.1
     seed:
         value: 10

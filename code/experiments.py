@@ -4,6 +4,7 @@ import wandb
 import os
 import json
 
+import numpy as np
 import pandas as pd
 
 from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
@@ -24,7 +25,8 @@ config = {
             "lr": 0.03,
             "num_iterations": 100,
             "plot": False,
-            "seed": 1
+            "seed": 1,
+            "print_results": False
             }
 
 # os.environ["WANDB_MODE"]="offline"
@@ -81,20 +83,33 @@ for s in range(config.seed):
     times.append(diagnostics['train_time'])
     cal_errors.append(diagnostics['cal_error'])
     crpss.append(diagnostics['crps'])
-    if "final_loss" in diagnostics.keys():
+    if "final_loss" in diagnostics.keys(): # MCMC doesn't have a loss
         losses.append(diagnostics['final_loss'])
     else:
         losses.append(0)
 
 
-    wandb.log({"seed": s})
-    wandb.log({"train_time": diagnostics['train_time']})
-    wandb.log({"cal_error": diagnostics['cal_error']})
-    wandb.log({"crps": diagnostics['crps']})
-    if "final_loss" in diagnostics.keys():
-        wandb.log({"final_loss": diagnostics['final_loss']})
+m_time = np.asarray(times).mean()
+s_time = np.asarray(times).std()
+m_cal = np.asarray(cal_errors).mean()
+s_cal = np.asarray(cal_errors).std()
+m_crps = np.asarray(crpss).mean()
+s_crps = np.asarray(crpss).std()
+m_loss = np.asarray(losses).mean()
+s_loss = np.asarray(losses).std()
 
 
-df = pd.DataFrame({"seed": range(config.seed), "train_times": times, "cal_errors": cal_errors, "CRPS": crpss, "final_loss": losses})
-with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
-    df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 
+wandb.log({"m_train_time": m_time})
+wandb.log({"s_train_time": s_time})
+wandb.log({"m_cal_error": m_cal})
+wandb.log({"s_cal_error": s_cal})
+wandb.log({"m_crps": m_crps})
+wandb.log({"s_crps": s_crps})
+wandb.log({"m_final_loss": m_loss})
+wandb.log({"m_final_loss": s_loss})
+
+
+if config.print_results:
+    df = pd.DataFrame({"seed": range(config.seed), "train_times": times, "cal_errors": cal_errors, "CRPS": crpss, "final_loss": losses})
+    with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
+        df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 
