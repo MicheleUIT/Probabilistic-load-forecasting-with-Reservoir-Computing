@@ -35,6 +35,7 @@ def train_QR(model, X, Y, lr, epochs, quantiles):
 
     diagnostics = {
         "train_time": train_time,
+        "final_loss": float((loss / Y.shape[0]).detach().cpu())
     }
 
     return diagnostics

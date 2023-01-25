@@ -3,7 +3,6 @@ import torch
 import wandb
 import os
 
-
 import pandas as pd
 
 from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
@@ -29,7 +28,7 @@ config = {
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
-
+# Select one GPU if more are available
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
 if torch.cuda.is_available():
@@ -37,15 +36,16 @@ if torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-
+# Run ESN and get its state
 Ytr, train_embedding, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
 
 times = []
 cal_errors = []
 crpss = []
+losses = []
 
 for s in range(config.seed):
-
+    # Set seed for reproducibility
     pyro.set_rng_seed(s)
 
     torch_model = TorchModel(config.model_widths, config.activation).to(device)
@@ -59,9 +59,8 @@ for s in range(config.seed):
 
     guide = AutoMultivariateNormal(svi_model, init_loc_fn=init_to_mean)
 
-
+    # Perform inference
     num_samples = 2000
-
     predictive, diagnostics = inference(config, svi_model, guide, X_train=train_embedding, Y_train=Ytr, 
                                         X_test=test_embedding, Y_test=Yte, num_samples=num_samples, inference_name=None)
 
@@ -69,14 +68,20 @@ for s in range(config.seed):
     times.append(diagnostics['train_time'])
     cal_errors.append(diagnostics['cal_error'])
     crpss.append(diagnostics['crps'])
+    if "final_loss" in diagnostics.keys():
+        losses.append(diagnostics['final_loss'])
+    else:
+        losses.append(0)
 
 
     wandb.log({"seed": s})
     wandb.log({"train_time": diagnostics['train_time']})
     wandb.log({"cal_error": diagnostics['cal_error']})
     wandb.log({"crps": diagnostics['crps']})
+    if "final_loss" in diagnostics.keys():
+        wandb.log({"final_loss": diagnostics['final_loss']})
 
 
-df = pd.DataFrame({"seed": range(config.seed), "train_times": times, "cal_errors": cal_errors, "CRPS": crpss})
+df = pd.DataFrame({"seed": range(config.seed), "train_times": times, "cal_errors": cal_errors, "CRPS": crpss, "final_loss": losses})
 with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
     df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 
