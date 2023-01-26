@@ -8,7 +8,7 @@ from pyro.ops.stats import autocorrelation
 from pyro.contrib.forecast.evaluate import eval_crps
 from tqdm import trange
 
-from inference.bayesian.utils import check_calibration, check_convergence
+from inference.bayesian.utils import check_calibration, check_convergence, acceptance_rate
 
 
 
@@ -106,7 +106,7 @@ def train_MCMC(model, X, Y, num_samples):
     # Save diagnostics in dict
     diagnostics = {
         "step_size": np.asarray(step_size),
-        "acceptance_rate": np.asarray(acc_rate),
+        "acceptance_rate": acceptance_rate(acc_rate),
         "train_time": train_time,
         "effective_sample_size": eff_sample,
         "split_gelman_rubin": GR_factor
