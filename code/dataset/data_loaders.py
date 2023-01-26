@@ -19,7 +19,6 @@ def load_acea():
     mat = loadmat('dataset/TS_Acea.mat')  # load mat-file
     ACEA_data = mat['X'] # original resolution (1 = 10 mins)
     ACEA_data = ACEA_data[::6] # hourly forecast
-    ACEA_data = ACEA_data[:7000] 
 
     X = ACEA_data[:-forecast_horizon]
     Y = ACEA_data[forecast_horizon:]
@@ -32,7 +31,7 @@ def load_spain():
     Spanish energy market daily data.
     Source: https://www.kaggle.com/code/manualrg/daily-electricity-demand-forecast-machine-learning/data
     """
-    forecast_horizon = 7 # 1 week
+    forecast_horizon = 17 # 1 day
 
     spain_power_data = np.genfromtxt('dataset/spain_energy_market.csv', delimiter=',', dtype=None, encoding=None)
     data = spain_power_data[...,5] # select column with values
