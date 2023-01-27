@@ -6,6 +6,7 @@ Sources:
 - [A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/pdf/1701.02434.pdf)
 - [Animation of MCMC](https://chi-feng.github.io/mcmc-demo/app.html)
 - [Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/BDA3.pdf)
+- https://link.springer.com/content/pdf/10.1007/978-0-387-71265-9_6.pdf
 - %%find better ones?%%
 
 MCMC is a sampling technique used to estimate some characteristics of a population, It's composed of [[Markov Chain Monte Carlo#^a1d63b|Monte Carlo]] and [[Markov Chain Monte Carlo#^f90134|Markov Chains]].
