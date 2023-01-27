@@ -89,7 +89,7 @@ Cons:
 How to be sure that the Markov chain converges to the wanted probability distribution? We use [[Markov Chain Monte Carlo#^098190|detailed balance]].
 
 ### Metropolis-Hasting algorithm
-Imagine that the target discrete probability distribution is $\pi$. Take any Markov chain whose state space contains the support of $\pi$, with transition matrix $H$ according to the following steps:
+Imagine that the target discrete probability distribution is $\pi$. Take any Markov chain whose state space contains the support of $\pi$, with transition matrix $H$ (also called proposal density) according to the following steps:
 1. Suppose we start from $X_n=i$, we want to find $X_{n+1}$
 2. Chose proposal state $Y=j$ according to the $i$-th row of $H$, i.e., $H_{ij}=P(Y=j|X_n=i)$
 3. Compute the acceptance probability $$a_{ij}=\min\left(1,\frac{\pi_j H_{ji}}{\pi_iH_{ij}}\right)$$
@@ -97,7 +97,10 @@ Imagine that the target discrete probability distribution is $\pi$. Take any Mar
 	1. if $U<a_{ij}$ accept the proposal state, i.e., $X_{n+i}=Y$
 	2. if $U>a_{ij}$ reject it, $X_{n+1}=X_n$
 
-The induced Markov chain has transition probability
+Usually, $H_{ij}$ is chosen to be a Gaussian centered on the old state $i$, so that the new one doesn't get too far. With this choice the sequence of samples descibes a random walk.
+The target distribution is the unnormalised posterior, which contains both the prior over the state space, and the likelyhood, which contains the known data points.
+
+The induced Markov chain has transition probability (that is the product of the proposal probability $H$ and the acceptance probability $a$)
 $$
 	Q_{ij}=
 	\begin{cases}
@@ -161,7 +164,7 @@ $$
 	U(q)=-\log(\pi(q)L(q|D))
 $$
 where $\pi(q)$ is the prior of the model parameters, and $L(q|D)$ is the likelihood given data $D$.
-The joint density of $q$ and $p$ is
+The joint density of $q$ and $p$ (i.e., the target posterior) is
 $$
 	f(q,p)=\frac{1}{Z}\exp(-U(q)/T)\,exp(-K(p)/T)
 $$
