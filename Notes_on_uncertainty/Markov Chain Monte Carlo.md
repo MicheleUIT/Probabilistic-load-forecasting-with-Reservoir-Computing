@@ -192,6 +192,9 @@ When it becomes less than zero, it means that the trajectory is going back towar
 
 
 ## Diagnostics
+
+^7ae837
+
 (work in progress, read [this](https://link.springer.com/content/pdf/10.1007/978-0-387-71265-9_6.pdf))
 
 ### Choosing parameters
