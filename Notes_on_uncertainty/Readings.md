@@ -18,6 +18,7 @@
 - [Strictly Proper Scoring Rules, Prediction, and Estimation](https://sites.stat.washington.edu/raftery/Research/PDF/Gneiting2007jasa.pdf), also [this](https://www.lokad.com/continuous-ranked-probability-score), go to [[Uncertainty in Deep Learning#^dd3ff3|CRPS]]
 - [Convergence diagnostics for Markov chain Monte Carlo](https://arxiv.org/pdf/1909.11827.pdf), go to [[Markov Chain Monte Carlo#^7ae837|MCMC]]
 - [Markov Chain Monte Carlo Convergence Diagnostics, A Comparative Review](https://www.jstor.org/stable/2291683#metadata_info_tab_contents), go to [[Markov Chain Monte Carlo#^7ae837|MCMC]]
+- [Quantile Regression](https://pubs.aeaweb.org/doi/pdfplus/10.1257/jep.15.4.143), go to [[Quantile regression]]
 - 
 
 

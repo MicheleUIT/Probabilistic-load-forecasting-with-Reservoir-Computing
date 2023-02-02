@@ -2,6 +2,7 @@ Sources:
 - https://medium.com/the-artificial-impostor/quantile-regression-part-1-e25bdd8d9d43 (it sucks)
 - https://towardsdatascience.com/quantile-regression-ff2343c4a03, introductory
 - [Five Things You Should Know about Quantile Regression](https://support.sas.com/resources/papers/proceedings17/SAS0525-2017.pdf)
+- [Quantile Regression](https://pubs.aeaweb.org/doi/pdfplus/10.1257/jep.15.4.143)
 
 A regular linear regression is achieved by solving the least square problem, which is equivalent to finding the conditional mean value $E[Y|X]$.
 
@@ -24,5 +25,5 @@ $$
 $$
 where $\rho_\tau$ is the check loss
 $$
-	\rho_\tau(t)=\tau \max(r,0)+(1-\tau)\max(-r,0)
+	\rho_\tau(r)=\tau \max(r,0)+(1-\tau)\max(-r,0)
 $$
