@@ -9,7 +9,7 @@ def inference(config, model, guide, X_train, Y_train, X_test, Y_test, num_sample
         return predictive, diagnostics
 
     elif config.inference == "mcmc":
-        mcmc, diagnostics = train_MCMC(model, X_train, Y_train, num_samples)
+        mcmc, diagnostics = train_MCMC(model, X_train, Y_train, config.num_chains, num_samples)
         predictive, diagnostics = pred_MCMC(model, mcmc, X_test, Y_test, config.plot, diagnostics, inference_name)
         return mcmc, predictive, diagnostics
 

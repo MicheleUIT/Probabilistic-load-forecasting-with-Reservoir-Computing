@@ -73,7 +73,7 @@ def pred_SVI(model, guide, X, Y, num_samples, plot, diagnostics):
 #########################################
 
 
-def train_MCMC(model, X, Y, num_samples):
+def train_MCMC(model, X, Y, num_chains, num_samples):
 
     # Use NUTS kernel
     nuts_kernel = NUTS(model)
@@ -88,7 +88,7 @@ def train_MCMC(model, X, Y, num_samples):
         # averaged over the time step n
         acc_rate.append(kernel._mean_accept_prob) # Log acceptance rate
 
-    mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
+    mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=0, num_chains=num_chains, hook_fn=acc_rate_hook)
 
     # Run the MCMC and compute the training time
     start_time = process_time()
