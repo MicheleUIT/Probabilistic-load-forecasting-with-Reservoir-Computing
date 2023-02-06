@@ -75,50 +75,66 @@ def pred_SVI(model, guide, X, Y, num_samples, plot, diagnostics):
 
 def train_MCMC(model, X, Y, num_chains, num_samples):
 
-    # Use NUTS kernel
-    nuts_kernel = NUTS(model)
-
     # Define a hook to log the acceptance rate and step size at each iteration
-    ### NOTE: Does it work if num_chains > 1 ? I should check on the server
     step_size = []
     acc_rate = []
     def acc_rate_hook(kernel, params, stage, i):
         step_size.append(kernel.step_size) # Log step_size
-        ### NOTE: _mean_accept_prob contains the acceptance probability
+        # _mean_accept_prob contains the acceptance probability
         # averaged over the time step n
         acc_rate.append(kernel._mean_accept_prob) # Log acceptance rate
 
-    mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=0, num_chains=num_chains, hook_fn=acc_rate_hook)
+    # Using num_chains>1 on the CPU affects memory performances,
+    # on GPU the multiprocessing doesn't seem to work properly
+    # so we run multiple chains sequentially
 
-    # Run the MCMC and compute the training time
-    start_time = process_time()
-    mcmc.run(X, Y)
-    train_time = process_time() - start_time
-    print(f"MCMC run time: {train_time/60} minutes.")
+    samples = []
+    train_time = []
 
-    # Get the split Gelman-Rubin factor and the effective sample size for each parameter
-    eff_sample = {}
-    GR_factor = {}
-    for n, v in list(mcmc.diagnostics().items())[:-2]:
-        eff_sample = v['n_eff']
-        GR_factor[n] = v['r_hat']
+    for n in range(num_chains):
+        # Use NUTS kernel
+        nuts_kernel = NUTS(model)
+
+        mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=0, num_chains=1, hook_fn=acc_rate_hook)
+
+        # Run the MCMC and compute the training time
+        start_time = process_time()
+        mcmc.run(X, Y)
+        train_time.append(process_time() - start_time)
+
+        samples.append(mcmc.get_samples())
+    
+    step_size = np.asarray(step_size).reshape((num_chains,num_samples))
+    acc_rate = acceptance_rate(np.asarray(acc_rate).reshape((num_chains,num_samples)))
+
+    # TODO: Move this to pred_MCMC
+    # # Get the split Gelman-Rubin factor and the effective sample size for each parameter
+    # eff_sample = {}
+    # GR_factor = {}
+    # for n, v in list(mcmc.diagnostics().items())[:-2]:
+    #     eff_sample = v['n_eff']
+    #     GR_factor[n] = v['r_hat']
 
     # Save diagnostics in dict
     diagnostics = {
-        "step_size": np.asarray(step_size),
-        "acceptance_rate": acceptance_rate(acc_rate),
-        "train_time": train_time,
-        "effective_sample_size": eff_sample,
-        "split_gelman_rubin": GR_factor
+        "step_size": step_size,
+        "acceptance_rate": acc_rate,
+        "train_time": np.asarray(train_time).mean(), # NOTE: should I change the definition of training time?
+        # "effective_sample_size": eff_sample,
+        # "split_gelman_rubin": GR_factor
     }
 
-    return mcmc, diagnostics
+    return samples, diagnostics
 
 
-def pred_MCMC(model, mcmc, X, Y, plot, diagnostics, inference_name):
+def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
 
-    samples = mcmc.get_samples()
+    samples_val = [] # store sample values for each chain
+    samples_key = list(samples[0].keys()) # store parameters' names
+    for s in samples:
+        samples_val.append(list(s.values()))
 
+    # TODO: fix the following and add effective_sample_size and gelman_rubin
     # Compute autocorrelation
     autocorr = {}
     for k, v in samples.items():

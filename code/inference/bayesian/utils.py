@@ -10,12 +10,16 @@ def acceptance_rate(mean_accept_prob):
     Convert the mean_accept_prob computed by NUTS kernel
     into a more easily interpretable acceptance rate
     """
-    acc_rate = []
+    
+    acc_rates = []
 
-    for n in range(len(mean_accept_prob)):
-        acc_rate.append((n+1)*mean_accept_prob[n] - n*mean_accept_prob[n-1])
+    for c in mean_accept_prob:
+        acc_rate = []
+        for n in range(len(c)):
+            acc_rate.append((n+1)*c[n] - n*c[n-1])
+        acc_rates.append(acc_rate)
 
-    return np.asarray(acc_rate)
+    return np.asarray(acc_rates)
 
 
 def check_convergence(samples, acc_rate, inference_name, plot=False):
