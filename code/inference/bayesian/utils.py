@@ -1,7 +1,10 @@
+import torch
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 from pathlib import Path
+from pyro.ops.stats import gelman_rubin
 
 
 
@@ -23,38 +26,74 @@ def acceptance_rate(mean_accept_prob):
 
 
 def check_convergence(samples, acc_rate, inference_name, plot=False):
+    """
+    Check convergence with two methods:
+    - via trace plots: where the rate of change becomes stable around zero
+    - via Gelman-Rubin factor: where it goes below 1.1
+    """
+
+    # Using trace plots
     conv = []
 
-    for name, param in samples.items():
-        param = param.squeeze()
-        if param.dim()>1:
-            for i in range(param.shape[1]):
-                conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", plot, inference_name))
+    for s in range(len(samples)):
+        for name, param in samples[s].items():
+            param = param.squeeze()
+            if param.dim()>1:
+                for i in range(param.shape[1]):
+                    conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", plot, inference_name, s))
+            else:
+                conv.append(trace_plot(param.cpu(), name, plot, inference_name, s))
+    
+        conv.append(trace_plot(acc_rate, "acceptance_rate", plot, inference_name, s))
+    
+    trace_plot_thr = max(conv)
+
+    # Using Gelman-Rubin
+    samples_val = [] # store sample values for each chain
+    samples_key = list(samples[0].keys()) # store parameters' names
+
+    for s in samples:
+        samples_val.append(list(s.values()))
+
+    r_hats = []
+    size = 500
+    step = 100
+    for p in range(len(samples_val[0])):
+        r_hats.append(gelman_rubin(torch.stack([l[p.cpu()] for l in samples_val]).unfold(1,size,step),
+                                   chain_dim=0, sample_dim=-1))
+
+    r_max = []
+    for r in r_hats:
+        if r.squeeze().dim() > 1:
+            r_max.append(r.squeeze().max(dim=-1)[0])
         else:
-            conv.append(trace_plot(param.cpu(), name, plot, inference_name))
-    
-    conv.append(trace_plot(acc_rate, "acceptance_rate", plot, inference_name))
-    
-    return max(conv)
+            r_max.append(r.squeeze())
+
+    r_max = torch.stack(r_max)
+
+    gelman_rubin_thr = r_hat_plot(r_max.cpu().numpy(), samples_key, plot, inference_name)
+
+    # Returning the threshold found with Gelman-Rubin
+    return gelman_rubin_thr
 
 
-def trace_plot(variable, name, plot, inference_name):
+def trace_plot(variable, name, plot, inference_name, chain_id):
     # Compute a moving average of the rate of change of ´variable´
     r = np.diff(variable)
     av_r = np.convolve(r, np.ones(10)/10, mode='valid')
     x = np.asarray(range(len(av_r)))
 
-    # Change color when ´av_r´ goes below 5%
-    cond = np.abs(av_r/(np.max(av_r)-np.min(av_r)))<0.05
+    # Change color when ´av_r´ goes below 10%
+    cond = np.abs(av_r/(np.max(av_r)-np.min(av_r)))<0.10
     col = np.where(cond, 'r', 'b')
 
-    # Threshold for convergence set where ´av_r´ is consistently under 5%
+    # Threshold for convergence set where ´av_r´ is consistently under 10%
     t = len(cond) - np.argmin(np.flip(cond))
 
     # Create the two plots
     if plot:
         fig, (ax1, ax2) = plt.subplots(2, sharex=True, sharey=False, figsize=(15,10))
-        ax1.set_title(f"{name} trace plot")
+        ax1.set_title(f"{name} trace plot - chain {chain_id}")
         ax1.grid()
         ax1.plot(variable)
         ax1.vlines(t, ymin=variable.min(), ymax=variable.max(), colors='g', linestyles='dashed', label="Convergence point")
@@ -64,11 +103,38 @@ def trace_plot(variable, name, plot, inference_name):
         ax2.vlines(t, ymin=av_r.min(), ymax=av_r.max(), colors='g', linestyles='dashed', label="Convergence point")
         
         # Save plots
-        save_path = f'./results/plots/{inference_name}/convergence/'
+        save_path = f'./results/plots/{inference_name}/convergence/{chain_id}'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
         plt.savefig(f'{save_path}{name}.png')
         plt.close(fig)
 
+    return t
+
+
+def r_hat_plot(r_max, name, plot, inference_name):
+
+    # Find where r_hat becomes consistently smaller than 1.1
+    cond = r_max<1.1
+    t = cond.shape[1] - np.min(np.argmin(np.flip(cond, axis=-1), axis=-1))
+
+    if plot:
+        plt.figure(figsize=(15,5))
+        plt.title(f"Gelman-Rubin factor")
+        plt.yscale('log')
+        plt.ylabel(r"$\hat{R}$")
+        plt.xlabel("steps")
+        plt.grid()
+        plt.plot(r_max.T)
+        plt.legend(name)
+        plt.hlines(y=1, xmin=0, xmax=r_max.shape[1]-1, colors='g', linestyles='dashed', label=r"$\hat{R}=1$")
+        plt.vlines(t, ymin=r_max.min(), ymax=r_max.max(), colors='g', linestyles='dashed', label="Convergence point")
+
+        # Save plots
+        save_path = f'./results/plots/{inference_name}/convergence/gelman_rubin/'
+        Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
+        plt.savefig(f'{save_path}{name}.png')
+        plt.close()
+    
     return t
 
 

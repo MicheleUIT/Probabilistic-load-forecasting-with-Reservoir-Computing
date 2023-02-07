@@ -17,7 +17,7 @@ from inference.bayesian.utils import check_calibration, check_convergence, accep
 #########################################
 
 def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
-    # NOTE: should I change also optimizer and loss?
+    
     optim = Adam({"lr": lr})
     svi = SVI(model, guide, optim, loss=Trace_ELBO())
 
@@ -129,17 +129,14 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
 
 def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
 
-    samples_val = [] # store sample values for each chain
-    samples_key = list(samples[0].keys()) # store parameters' names
-    for s in samples:
-        samples_val.append(list(s.values()))
+    
 
-    # TODO: fix the following and add effective_sample_size and gelman_rubin
+    # FIXME: fix the following and add effective_sample_size
     # Compute autocorrelation
-    autocorr = {}
-    for k, v in samples.items():
-        autocorr[k] = autocorrelation(v)
-    diagnostics["autocorrelation"] = autocorr
+    # autocorr = {}
+    # for k, v in samples.items():
+    #     autocorr[k] = autocorrelation(v)
+    # diagnostics["autocorrelation"] = autocorr
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
@@ -147,6 +144,7 @@ def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
     print(f"MCMC converged at {warmup} steps.")
 
     ### TODO: Cut samples at warmup computed above
+    # FIXME: Fix so to deal with multiple chains
     # I probably need to loop through all samples and cut them since it's a dict
     # Perform inference
     predictive = Predictive(model, samples)(x=X, y=None)
