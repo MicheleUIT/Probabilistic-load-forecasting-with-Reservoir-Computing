@@ -107,21 +107,19 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
     step_size = np.asarray(step_size).reshape((num_chains,num_samples))
     acc_rate = acceptance_rate(np.asarray(acc_rate).reshape((num_chains,num_samples)))
 
-    # TODO: Move this to pred_MCMC
-    # # Get the split Gelman-Rubin factor and the effective sample size for each parameter
-    # eff_sample = {}
-    # GR_factor = {}
-    # for n, v in list(mcmc.diagnostics().items())[:-2]:
-    #     eff_sample = v['n_eff']
-    #     GR_factor[n] = v['r_hat']
+    # Compute autocorrelation for each chain and each parameter separately
+    autocorrs = []
+    for chain in samples:
+        autocorr = {}
+        for k, v in chain.items():
+            autocorr[k] = autocorrelation(v)
 
     # Save diagnostics in dict
     diagnostics = {
         "step_size": step_size,
         "acceptance_rate": acc_rate,
         "train_time": np.asarray(train_time).mean(), # NOTE: should I change the definition of training time?
-        # "effective_sample_size": eff_sample,
-        # "split_gelman_rubin": GR_factor
+        "autocorrelation": autocorrs
     }
 
     return samples, diagnostics
@@ -129,23 +127,14 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
 
 def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
 
-    
-
-    # FIXME: fix the following and add effective_sample_size
-    # Compute autocorrelation
-    # autocorr = {}
-    # for k, v in samples.items():
-    #     autocorr[k] = autocorrelation(v)
-    # diagnostics["autocorrelation"] = autocorr
-
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
-    warmup = check_convergence(samples, acc_rate, inference_name, plot)
+    warmup, samples, GR_factors, ess = check_convergence(samples, acc_rate, inference_name, plot)
     print(f"MCMC converged at {warmup} steps.")
 
-    ### TODO: Cut samples at warmup computed above
-    # FIXME: Fix so to deal with multiple chains
-    # I probably need to loop through all samples and cut them since it's a dict
+    diagnostics["gelman_rubin"] = GR_factors
+    diagnostics["effective_sample_size"] = ess
+
     # Perform inference
     predictive = Predictive(model, samples)(x=X, y=None)
 

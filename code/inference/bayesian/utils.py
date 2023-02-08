@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from pathlib import Path
-from pyro.ops.stats import gelman_rubin
+from pyro.ops.stats import gelman_rubin, effective_sample_size
 
 
 
@@ -56,12 +56,16 @@ def check_convergence(samples, acc_rate, inference_name, plot=False):
         samples_val.append(list(s.values()))
 
     r_hats = []
+    ess = []
     size = 500
     step = 100
     for p in range(len(samples_val[0])):
-        r_hats.append(gelman_rubin(torch.stack([l[p.cpu()] for l in samples_val]).unfold(1,size,step),
+        r_hats.append(gelman_rubin(torch.stack([l[p].cpu() for l in samples_val]).unfold(1,size,step),
                                    chain_dim=0, sample_dim=-1))
-
+        # compute also effective sample size
+        ess.append(effective_sample_size(torch.stack([l[p].cpu().squeeze() for l in samples_val]),
+                                   chain_dim=0, sample_dim=-1))
+        
     r_max = []
     for r in r_hats:
         if r.squeeze().dim() > 1:
@@ -73,8 +77,15 @@ def check_convergence(samples, acc_rate, inference_name, plot=False):
 
     gelman_rubin_thr = r_hat_plot(r_max.cpu().numpy(), samples_key, plot, inference_name)
 
-    # Returning the threshold found with Gelman-Rubin
-    return gelman_rubin_thr
+    # Return the threshold found with Gelman-Rubin,
+    # samples as dictionary after cutting them at gelman_rubin_thr,
+    # the last GR factor for each parameter,
+    # effective sample size for each parameter
+    samples_dict = {samples_key[k] : torch.cat([c[k][gelman_rubin_thr:] for c in samples_val]) for k in range(len(samples_key))}
+    GR_dict = {samples_key[k] : r_max[k,-1] for k in range(len(samples_key))}
+    ess_dict = {samples_key[k]: ess[k] for k in range(len(samples_key))}
+
+    return gelman_rubin_thr, samples_dict, GR_dict, ess_dict
 
 
 def trace_plot(variable, name, plot, inference_name, chain_id):
