@@ -32,19 +32,31 @@ def check_convergence(samples, acc_rate, inference_name, plot=False):
     - via Gelman-Rubin factor: where it goes below 1.1
     """
 
+    print("Checking convergence...")
+    if plot:
+        print("Creating trace plots...")
+
     # Using trace plots
     conv = []
 
     for s in range(len(samples)):
         for name, param in samples[s].items():
             param = param.squeeze()
-            if param.dim()>1:
+
+            if param.dim()==3:
+                for i in range(param.shape[1]):
+                    for j in range(param.shape[2]):
+                        conv.append(trace_plot(param[:,i,j].cpu(), name + f"_{i}-{j}", plot, inference_name, s))
+            elif param.dim()==2:
                 for i in range(param.shape[1]):
                     conv.append(trace_plot(param[:,i].cpu(), name + f"_{i}", plot, inference_name, s))
-            else:
+            elif param.dim()==1:
                 conv.append(trace_plot(param.cpu(), name, plot, inference_name, s))
+            else:
+                raise ValueError(f"Parameter {name} of dim {param.dim()}, expected 1, 2 or 3.")
     
-        conv.append(trace_plot(acc_rate, "acceptance_rate", plot, inference_name, s))
+        conv.append(trace_plot(acc_rate[s], "acceptance_rate", plot, inference_name, s))
+        print(f"Chain {s} completed.")
     
     trace_plot_thr = max(conv)
 
@@ -68,10 +80,10 @@ def check_convergence(samples, acc_rate, inference_name, plot=False):
         
     r_max = []
     for r in r_hats:
-        if r.squeeze().dim() > 1:
-            r_max.append(r.squeeze().max(dim=-1)[0])
-        else:
-            r_max.append(r.squeeze())
+        r_tmp = r.squeeze()
+        while r_tmp.dim() > 1:
+            r_tmp = r_tmp.max(dim=-1)[0].squeeze()
+        r_max.append(r_tmp)
 
     r_max = torch.stack(r_max)
 
@@ -114,7 +126,7 @@ def trace_plot(variable, name, plot, inference_name, chain_id):
         ax2.vlines(t, ymin=av_r.min(), ymax=av_r.max(), colors='g', linestyles='dashed', label="Convergence point")
         
         # Save plots
-        save_path = f'./results/plots/{inference_name}/convergence/{chain_id}'
+        save_path = f'./results/plots/{inference_name}/convergence/{chain_id}/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
         plt.savefig(f'{save_path}{name}.png')
         plt.close(fig)

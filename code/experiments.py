@@ -9,7 +9,7 @@ import pandas as pd
 
 from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
 from pathlib import Path
-from inference.bayesian.models import TorchModel, BayesianModel
+from inference.bayesian.models import TorchModel, BayesianModel, HorseshoeSSVS
 from inference.inference import inference
 from ESN.utils import run_esn
 
@@ -21,7 +21,9 @@ config = {
             "distributions": ["gauss", "unif", "gauss"],
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
-            "inference": "svi",
+            "num_chains": 2,
+            "num_samples": 2000,
+            "inference": "mcmc",
             "lr": 0.03,
             "num_iterations": 100,
             "plot": False,
@@ -29,7 +31,7 @@ config = {
             "print_results": False
             }
 
-# os.environ["WANDB_MODE"]="offline"
+os.environ["WANDB_MODE"]="offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
@@ -64,7 +66,10 @@ for s in range(config.seed):
     pyro.set_rng_seed(s)
 
     torch_model = TorchModel(config.model_widths, config.activation).to(device)
-    svi_model = BayesianModel(torch_model, config, device)
+    if config.inference == "ssvs":
+        model = HorseshoeSSVS(train_embedding.shape[1], 1, type='m', device=device)
+    else:
+        model = BayesianModel(torch_model, config, device)
 
     pyro.clear_param_store()
 
@@ -72,12 +77,12 @@ for s in range(config.seed):
     if device != 'cpu':
         torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-    guide = AutoMultivariateNormal(svi_model, init_loc_fn=init_to_mean)
+    guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
 
     # Perform inference
-    num_samples = 2000
-    predictive, diagnostics = inference(config, svi_model, guide, X_train=train_embedding, Y_train=Ytr, 
-                                        X_test=test_embedding, Y_test=Yte, num_samples=num_samples, inference_name=None)
+    predictive, diagnostics = inference(config, model, guide, 
+                                        X_train=train_embedding, Y_train=Ytr, 
+                                        X_test=test_embedding, Y_test=Yte)
 
 
     times.append(diagnostics['train_time'])
