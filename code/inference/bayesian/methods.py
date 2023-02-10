@@ -50,12 +50,24 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
 def pred_SVI(model, guide, X, Y, num_samples, plot, diagnostics):
 
     # Perform inference
+    start_time = process_time()
     predictive = Predictive(model, guide=guide, num_samples=num_samples)(x=X, y=None)
+    inference_time = process_time() - start_time
+    diagnostics["inference_time"] = inference_time
 
     # Quantiles
     target_interval = 0.95  # draw and compute the 95% confidence interval
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
-    diagnostics["quantiles"] = [q_low, q_hi]
+    diagnostics["width95"] = q_hi - q_low
+    
+    target_interval = 0.99  # draw and compute the 99% confidence interval
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+    diagnostics["width99"] = q_hi - q_low
+
+    # Mean Squared Error
+    mean = np.mean(predictive["obs"].cpu().numpy().squeeze(), axis=0)
+    mse = np.mean((mean-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
 
     # Compute calibration error
     diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)
@@ -129,7 +141,7 @@ def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
-    warmup, samples, GR_factors, ess = check_convergence(samples, acc_rate, inference_name, plot)
+    _, warmup, samples, GR_factors, ess = check_convergence(samples, acc_rate, inference_name, plot)
     print(f"MCMC converged at {warmup} steps.")
 
     diagnostics["gelman_rubin"] = GR_factors
@@ -141,7 +153,16 @@ def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
     # Quantiles
     target_interval = 0.95  # draw and compute the 95% confidence interval
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
-    diagnostics["quantiles"] = [q_low, q_hi]
+    diagnostics["width95"] = q_hi - q_low
+    
+    target_interval = 0.99  # draw and compute the 99% confidence interval
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+    diagnostics["width99"] = q_hi - q_low
+
+    # Mean Squared Error
+    mean = np.mean(predictive["obs"].cpu().numpy().squeeze(), axis=0)
+    mse = np.mean((mean-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
 
     # Compute calibration error
     diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)

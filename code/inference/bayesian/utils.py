@@ -97,13 +97,13 @@ def check_convergence(samples, acc_rate, inference_name, plot=False):
     GR_dict = {samples_key[k] : r_max[k,-1] for k in range(len(samples_key))}
     ess_dict = {samples_key[k]: ess[k] for k in range(len(samples_key))}
 
-    return gelman_rubin_thr, samples_dict, GR_dict, ess_dict
+    return trace_plot_thr, gelman_rubin_thr, samples_dict, GR_dict, ess_dict
 
 
 def trace_plot(variable, name, plot, inference_name, chain_id):
     # Compute a moving average of the rate of change of ´variable´
     r = np.diff(variable)
-    av_r = np.convolve(r, np.ones(10)/10, mode='valid')
+    av_r = np.convolve(r, np.ones(50)/50, mode='valid')
     x = np.asarray(range(len(av_r)))
 
     # Change color when ´av_r´ goes below 10%
@@ -138,7 +138,10 @@ def r_hat_plot(r_max, name, plot, inference_name):
 
     # Find where r_hat becomes consistently smaller than 1.1
     cond = r_max<1.1
-    t = cond.shape[1] - np.min(np.argmin(np.flip(cond, axis=-1), axis=-1))
+    t = cond.shape[1] - max(np.min(np.argmin(np.flip(cond, axis=-1), axis=-1)), 1000)
+
+    if t<0:
+        ValueError(f"Invalid convergence threshold.")
 
     if plot:
         plt.figure(figsize=(15,5))
@@ -148,14 +151,14 @@ def r_hat_plot(r_max, name, plot, inference_name):
         plt.xlabel("steps")
         plt.grid()
         plt.plot(r_max.T)
-        plt.legend(name)
         plt.hlines(y=1, xmin=0, xmax=r_max.shape[1]-1, colors='g', linestyles='dashed', label=r"$\hat{R}=1$")
-        plt.vlines(t, ymin=r_max.min(), ymax=r_max.max(), colors='g', linestyles='dashed', label="Convergence point")
+        plt.vlines(t, ymin=r_max.min(), ymax=r_max.max(), colors='b', linestyles='dashed', label="Convergence point")
+        plt.legend(name)
 
         # Save plots
         save_path = f'./results/plots/{inference_name}/convergence/gelman_rubin/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
-        plt.savefig(f'{save_path}{name}.png')
+        plt.savefig(f'{save_path}gelman_rubin.png')
         plt.close()
     
     return t

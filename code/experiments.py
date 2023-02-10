@@ -21,14 +21,14 @@ config = {
             "distributions": ["gauss", "unif", "gauss"],
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
-            "num_chains": 2,
-            "num_samples": 2000,
+            "num_chains": 10,
+            "num_samples": 10000,
             "inference": "mcmc",
             "lr": 0.03,
             "num_iterations": 100,
-            "plot": False,
+            "plot": True,
             "seed": 1,
-            "print_results": False
+            "print_results": True
             }
 
 os.environ["WANDB_MODE"]="offline"
@@ -56,10 +56,21 @@ else:
     torch.save([Ytr, train_embedding, val_embedding, Yte, test_embedding], file_path)
 
 
-times = []
+# Quantiles for quantile regression
+quantiles = [0, 0.005]
+for n in range(39):
+    quantiles.append(0.025*(n+1))
+quantiles.append(0.995)
+
+
+train_times = []
+inf_times = []
 cal_errors = []
 crpss = []
 losses = []
+widths95 = []
+widths99 = []
+mses = []
 
 for s in range(config.seed):
     # Set seed for reproducibility
@@ -82,24 +93,40 @@ for s in range(config.seed):
     # Perform inference
     predictive, diagnostics = inference(config, model, guide, 
                                         X_train=train_embedding, Y_train=Ytr, 
-                                        X_test=test_embedding, Y_test=Yte)
+                                        X_test=test_embedding, Y_test=Yte,
+                                        quantiles=quantiles)
 
 
-    times.append(diagnostics['train_time'])
+    train_times.append(diagnostics['train_time'])
     cal_errors.append(diagnostics['cal_error'])
+    widths95.append(diagnostics['width95'])
+    widths99.append(diagnostics['width99'])
     crpss.append(diagnostics['crps'])
+    mses.append(diagnostics['mse'])
     if "final_loss" in diagnostics.keys(): # MCMC doesn't have a loss
         losses.append(diagnostics['final_loss'])
     else:
         losses.append(0)
+    if "inference_time" in diagnostics.keys(): # MCMC doesn't have a inference_time
+        inf_times.append(diagnostics['inference_time'])
+    else:
+        inf_times.append(0)
 
 
-m_time = np.asarray(times).mean()
-s_time = np.asarray(times).std()
+m_time = np.asarray(train_times).mean()
+s_time = np.asarray(train_times).std()
+m_inf_time = np.asarray(inf_times).mean()
+s_inf_time = np.asarray(inf_times).std()
 m_cal = np.asarray(cal_errors).mean()
 s_cal = np.asarray(cal_errors).std()
+m_width95 = np.asarray(widths95).mean()
+s_width95 = np.asarray(widths95).std()
+m_width99 = np.asarray(widths99).mean()
+s_width99 = np.asarray(widths99).std()
 m_crps = np.asarray(crpss).mean()
 s_crps = np.asarray(crpss).std()
+m_mse = np.asarray(mses).mean()
+s_mse = np.asarray(mses).std()
 m_loss = np.asarray(losses).mean()
 s_loss = np.asarray(losses).std()
 
@@ -115,6 +142,8 @@ wandb.log({"m_final_loss": s_loss})
 
 
 if config.print_results:
-    df = pd.DataFrame({"seed": range(config.seed), "train_times": times, "cal_errors": cal_errors, "CRPS": crpss, "final_loss": losses})
+    df = pd.DataFrame({"seed": range(config.seed), "train_times": train_times, "inf_times": inf_times,
+                       "cal_errors": cal_errors, "width95": widths95, "width99": widths99,
+                       "MSE": mses, "CRPS": crpss, "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
         df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 
