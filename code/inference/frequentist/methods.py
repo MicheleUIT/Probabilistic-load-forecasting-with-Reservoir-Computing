@@ -46,18 +46,31 @@ def pred_QR(model, X, Y, plot, diagnostics, quantiles):
     model.eval()
 
     # Perform inference
+    start_time = process_time()
     predictive = model(X).detach().squeeze()
+    inference_time = process_time() - start_time
+    diagnostics["inference_time"] = inference_time
 
-    # 0.95 quantiles
-    q_low = predictive[:,0].cpu().numpy()
+    # 0.95 and 0.99 quantiles
+    q_low = predictive[:,1].cpu().numpy()
     q_hi = predictive[:,-1].cpu().numpy()
-    diagnostics["quantiles"] = [q_low, q_hi]
+    diagnostics["width99"] = q_hi - q_low
+
+    q_low = predictive[:,2].cpu().numpy()
+    q_hi = predictive[:,-2].cpu().numpy()
+    diagnostics["width95"] = q_hi - q_low
 
     # Check coverage
     # TODO: is it useful?
     if predictive.dim() > 1:
         _, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
         diagnostics["avg_length"] = avg_length
+    
+    # Mean Squared Error
+    mean_index = int(predictive.shape[1]/2)
+    mean = predictive[:,mean_index].cpu().numpy()
+    mse = np.mean((mean-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
 
     # Compute calibration error
     diagnostics["cal_error"] = check_calibration(predictive, Y, quantiles, "q_regr", plot=plot)
