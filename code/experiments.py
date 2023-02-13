@@ -26,12 +26,12 @@ config = {
             "inference": "mcmc",
             "lr": 0.03,
             "num_iterations": 100,
-            "plot": True,
+            "plot": False,
             "seed": 1,
-            "print_results": True
+            "print_results": False
             }
 
-os.environ["WANDB_MODE"]="offline"
+# os.environ["WANDB_MODE"]="offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 

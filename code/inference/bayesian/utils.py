@@ -139,9 +139,7 @@ def r_hat_plot(r_max, name, plot, inference_name):
     # Find where r_hat becomes consistently smaller than 1.1
     cond = r_max<1.1
     t = cond.shape[1] - max(np.min(np.argmin(np.flip(cond, axis=-1), axis=-1)), 1000)
-
-    if t<0:
-        ValueError(f"Invalid convergence threshold.")
+    t = max(t, 0)
 
     if plot:
         plt.figure(figsize=(15,5))
