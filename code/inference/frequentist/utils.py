@@ -77,6 +77,6 @@ def eval_crps(quantiles, tau, y):
     so to use it to evaluate quantile regression
     """
 
-    crps = np.sum((tau-np.heaviside(quantiles-y, 0))**2)
+    crps = np.mean(np.sum((np.asarray(quantiles)-np.heaviside(tau-y, 0))**2, 1))
 
     return crps
