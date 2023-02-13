@@ -50,9 +50,9 @@ Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does no
 file_path = save_path + f'esn_states_{n_internal_units}units.pt'
 
 if os.path.isfile(file_path):
-    Ytr, train_embedding, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
+    Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
 else:
-    Ytr, train_embedding, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
+    Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
     torch.save([Ytr, train_embedding, val_embedding, Yte, test_embedding], file_path)
 
 
@@ -93,7 +93,7 @@ for s in range(config.seed):
     # Perform inference
     predictive, diagnostics = inference(config, model, guide, 
                                         X_train=train_embedding, Y_train=Ytr, 
-                                        X_test=test_embedding, Y_test=Yte,
+                                        X_test=val_embedding, Y_test=Yval, # hyperparameters opt with validation dataset
                                         quantiles=quantiles)
 
 

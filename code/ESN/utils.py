@@ -15,7 +15,6 @@ def run_esn(dataset, device, dim_reduction=True):
     # Set ESN hyperparams
     config = json.load(open('ESN/configs/ESN_hyperparams.json', 'r'))
 
-    ### TODO: consider to make this more general with more datasets
     Xtr, Ytr, Xval, Yval, Xte, Yte = generate_datasets(X, Y, test_percent = 0.15, val_percent = 0.15)
     print("Tr: {:d}, Val: {:d}, Te: {:d}".format(Xtr.shape[0], Xval.shape[0], Xte.shape[0]))
 
@@ -30,10 +29,14 @@ def run_esn(dataset, device, dim_reduction=True):
 
     if dim_reduction==True:
         # Return emedding of states via some dimensionality reduction technique
-        return to_torch(Ytr, device).squeeze(), to_torch(train_embedding, device), to_torch(val_embedding, device), to_torch(test_embedding, device), to_torch(Yte, device).squeeze()
+        return to_torch(Ytr, device).squeeze(), to_torch(train_embedding, device), \
+                to_torch(Yval, device).squeeze(), to_torch(val_embedding, device), \
+                to_torch(Yte, device).squeeze(), to_torch(test_embedding, device)
     else:
         # Return the raw reservoir states
-        return to_torch(Ytr, device).squeeze(), to_torch(train_states, device), to_torch(val_states, device), to_torch(Yte, device).squeeze(), to_torch(test_states, device)
+        return to_torch(Ytr, device).squeeze(), to_torch(train_states, device), \
+                to_torch(Yval, device).squeeze(), to_torch(val_states, device), \
+                to_torch(Yte, device).squeeze(), to_torch(test_states, device)
 
 
 def to_torch(array, device):
