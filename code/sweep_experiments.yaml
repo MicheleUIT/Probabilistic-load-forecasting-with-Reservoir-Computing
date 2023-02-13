@@ -10,11 +10,14 @@ parameters:
     dataset:
         value: "acea"
     model_widths:
-        value: [50, 10, 1]
+        values: [[500, 1], [500, 250, 1], [500, 300, 100, 1]]
     activation:
-        value: "tanh"
+        values: ["tanh", "relu"]
     distributions:
-        value: ["gauss", "unif", "gauss"]
+        values: [["gauss", "unif", "gauss"],
+                ["unif", "unif", "gauss"],
+                ["lapl", "unif", "gauss"],
+                ["bern", "unif", "gauss"]]
     parameters:
         value: [[0,1],[0,10]]
     dim_reduction:
@@ -23,7 +26,7 @@ parameters:
         value: "svi"
     num_iterations:
         min: 30
-        max: 500
+        max: 200
     lr:
         min: 0.0001
         max: 0.1

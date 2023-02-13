@@ -53,7 +53,7 @@ if os.path.isfile(file_path):
     Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
 else:
     Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
-    torch.save([Ytr, train_embedding, val_embedding, Yte, test_embedding], file_path)
+    torch.save([Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding], file_path)
 
 
 # Quantiles for quantile regression
