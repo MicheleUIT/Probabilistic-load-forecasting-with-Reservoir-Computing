@@ -4,9 +4,6 @@ import pyro
 import pyro.distributions as dist
 
 from pyro.nn import PyroModule, PyroSample
-# from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
-# from pyro.optim import Adam
-# from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS, HMC
 
 
 class TorchModel(torch.nn.Module):
@@ -101,6 +98,24 @@ class BayesianModel(PyroModule):
                 else:
                     distributions.append(dist.Uniform(torch.tensor(float(p[0]), device=self.device),
                                                     torch.tensor(float(p[1]), device=self.device)))
+                    
+            elif distr_list[i] == "lapl":
+                try:
+                    p = param_list[i]
+                except:
+                    distributions.append(dist.Laplace)
+                else:
+                    distributions.append(dist.Laplace(torch.tensor(float(p[0]), device=self.device),
+                                                    torch.tensor(float(p[1]), device=self.device))) # >0
+                    
+            elif distr_list[i] == "bern":
+                try:
+                    p = param_list[i]
+                except:
+                    raise ValueError(f"Missing parameter for distribution {i} ({distr_list[i]}).")
+                else:
+                    distributions.append(dist.RelaxedBernoulli(torch.tensor(float(p[-1]), device=self.device))) # >0
+                    
             else:
                 raise ValueError(f"{distr_list[i]['name']} prior distribution not defined.")
         
