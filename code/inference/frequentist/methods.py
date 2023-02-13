@@ -3,7 +3,7 @@ import numpy as np
 
 from time import process_time
 from tqdm import trange
-from inference.frequentist.utils import compute_coverage_len, check_calibration
+from inference.frequentist.utils import compute_coverage_len, check_calibration, eval_crps
 
 
 
@@ -51,17 +51,17 @@ def pred_QR(model, X, Y, plot, diagnostics, quantiles):
     inference_time = process_time() - start_time
     diagnostics["inference_time"] = inference_time
 
-    # 0.95 and 0.99 quantiles
+    # 0.99 quantiles
     q_low = predictive[:,1].cpu().numpy()
     q_hi = predictive[:,-1].cpu().numpy()
     diagnostics["width99"] = q_hi - q_low
-
+    # and 0.95 quantiles
     q_low = predictive[:,2].cpu().numpy()
     q_hi = predictive[:,-2].cpu().numpy()
     diagnostics["width95"] = q_hi - q_low
 
     # Check coverage
-    # TODO: is it useful?
+    # NOTE: is it useful?
     if predictive.dim() > 1:
         _, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
         diagnostics["avg_length"] = avg_length
@@ -74,6 +74,10 @@ def pred_QR(model, X, Y, plot, diagnostics, quantiles):
 
     # Compute calibration error
     diagnostics["cal_error"] = check_calibration(predictive, Y, quantiles, "q_regr", plot=plot)
+
+    # Continuous ranked probability score
+    crps = eval_crps(quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())
+    diagnostics["crps"] = crps
 
     return predictive, diagnostics
 
