@@ -16,22 +16,23 @@ from ESN.utils import run_esn
 
 config = {
             "dataset": "acea",
-            "model_widths": [50, 10, 1],
+            "model_widths": [512, 1],
             "activation": "tanh",
             "distributions": ["gauss", "unif", "gauss"],
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
             "num_chains": 10,
             "num_samples": 10000,
-            "inference": "mcmc",
+            "inference": "svi",
             "lr": 0.03,
             "num_iterations": 100,
-            "plot": False,
+            "plot": True,
             "seed": 1,
-            "print_results": False
+            "print_results": False,
+            "sweep": True
             }
 
-# os.environ["WANDB_MODE"]="offline"
+os.environ["WANDB_MODE"]="offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
@@ -66,6 +67,7 @@ quantiles.append(0.995)
 train_times = []
 inf_times = []
 cal_errors = []
+new_cal_errors = []
 crpss = []
 losses = []
 widths95 = []
@@ -79,6 +81,8 @@ for s in range(config.seed):
     torch_model = TorchModel(config.model_widths, config.activation).to(device)
     if config.inference == "ssvs":
         model = HorseshoeSSVS(train_embedding.shape[1], 1, type='m', device=device)
+    elif config.inference == "q_regr":
+        model = TorchModel(config.model_widths, config.activation, quantiles).to(device)
     else:
         model = BayesianModel(torch_model, config, device)
 
@@ -93,12 +97,14 @@ for s in range(config.seed):
     # Perform inference
     predictive, diagnostics = inference(config, model, guide, 
                                         X_train=train_embedding, Y_train=Ytr, 
-                                        X_test=val_embedding, Y_test=Yval, # hyperparameters opt with validation dataset
+                                        X_val=val_embedding, Y_val=Yval,
+                                        X_test=test_embedding, Y_test=Yte,
                                         quantiles=quantiles)
 
 
     train_times.append(diagnostics['train_time'])
     cal_errors.append(diagnostics['cal_error'])
+    new_cal_errors.append(diagnostics['new_cal_error'])
     widths95.append(diagnostics['width95'])
     widths99.append(diagnostics['width99'])
     crpss.append(diagnostics['crps'])
@@ -119,6 +125,8 @@ m_inf_time = np.asarray(inf_times).mean()
 s_inf_time = np.asarray(inf_times).std()
 m_cal = np.asarray(cal_errors).mean()
 s_cal = np.asarray(cal_errors).std()
+m_new_cal = np.asarray(new_cal_errors).mean()
+s_new_cal = np.asarray(new_cal_errors).std()
 m_width95 = np.asarray(widths95).mean()
 s_width95 = np.asarray(widths95).std()
 m_width99 = np.asarray(widths99).mean()
@@ -143,7 +151,7 @@ wandb.log({"m_final_loss": s_loss})
 
 if config.print_results:
     df = pd.DataFrame({"seed": range(config.seed), "train_times": train_times, "inf_times": inf_times,
-                       "cal_errors": cal_errors, "width95": widths95, "width99": widths99,
+                       "cal_errors": cal_errors, "new_cal_errors": new_cal_errors, "width95": widths95, "width99": widths99,
                        "MSE": mses, "CRPS": crpss, "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
         df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 

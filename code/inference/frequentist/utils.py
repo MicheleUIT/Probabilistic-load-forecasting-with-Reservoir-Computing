@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from pathlib import Path
+from sklearn.isotonic import IsotonicRegression
 
 
 
@@ -38,24 +39,46 @@ def plot_forecast(predictive, Y):
     pass
 
 
-def check_calibration(predictive, Y, quantiles, folder, plot=False):
+def check_calibration(predictive, Y, quantiles):
     """
     It computes the calibration error according to formula (9)
-    of paper https://arxiv.org/pdf/1807.00263.pdf, then it plots
-    optionally the calibration graph
+    of paper https://arxiv.org/pdf/1807.00263.pdf
     """
     # Compute predicted CDF
     predicted_cdf = np.mean(Y.unsqueeze(dim=1).cpu().numpy() <= predictive.cpu().numpy(), axis=0)
 
     # Compute calibration error
-    w = 1 # NOTE: add a weight?
+    w = 1
     cal_error = np.sum(w*(predicted_cdf-quantiles)**2)
     
+    return cal_error, predicted_cdf
+
+
+def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
+    """
+    Function that computes the calibration error on the test dataset,
+    train a calibrator on the evaluation dataset and check again the 
+    error on test dataset (or vice versa)
+    """
+
+    # Check calibration on test dataset
+    cal_error, unc_cdf = check_calibration(predictive2, Y2, quantiles)
+
+    # Calibrate on eval dataset
+    # Fit calibrator
+    isotonic = IsotonicRegression(out_of_bounds='clip')
+    isotonic.fit(quantiles, predictive.cpu().numpy())
+
+    # Check again calibration on test dataset
+    new_quantiles = isotonic.transform(quantiles)
+    new_cal_error, cal_cdf = check_calibration(predictive2, Y2, new_quantiles)
+
     # Plot calibration graph
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
-        ax.scatter(quantiles, predicted_cdf, alpha=0.7, s=3)
+        ax.plot(quantiles, unc_cdf, '-o', color='purple', label='Uncalibrated')
+        ax.plot(quantiles, cal_cdf, '-o', color='purple', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)
@@ -68,7 +91,7 @@ def check_calibration(predictive, Y, quantiles, folder, plot=False):
         plt.show()
         plt.clf()
     
-    return cal_error
+    return cal_error, new_cal_error
 
 
 def eval_crps(quantiles, tau, y):

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from pyro.ops.stats import gelman_rubin, effective_sample_size
+from sklearn.isotonic import IsotonicRegression
 
 
 
@@ -185,12 +186,48 @@ def plot_forecast(predictive, Y, name):
     pass
 
 
-def check_calibration(predictive, Y, folder, plot=False):
+def check_calibration(predictive, Y, quants):
     """
     It computes the calibration error according to formula (9)
-    of paper https://arxiv.org/pdf/1807.00263.pdf, then it plots
-    optionally the calibration graph
+    of paper https://arxiv.org/pdf/1807.00263.pdf
     """
+
+    pcts = []
+
+    for q in quants:
+        lower, upper = np.quantile(predictive["obs"].cpu().numpy().squeeze(), q, axis=0)
+        
+        perc_within = np.mean((Y.cpu().squeeze().numpy() <= upper)&(Y.cpu().squeeze().numpy() >= lower))
+
+        pcts.append(perc_within)
+
+    # Compute calibration error
+    p = np.asarray(quants)[:,0] * 2
+    p_hat = np.asarray(pcts)
+    w = 1
+    cal_error = np.sum(w*(p-p_hat)**2)
+    
+    return cal_error, pcts
+
+
+def calibrate(predictive, predictive2, Y, Y2, folder, plot=False):
+    """
+    Function that computes the calibration error on the test dataset,
+    train a calibrator on the evaluation dataset and check again the 
+    error on test dataset (or vice versa)
+    """
+
+    # Quantile levels used to check calibration
+    conf_levels = np.arange(start=0.025, stop=0.5, step=0.025)
+    quants = []
+    for cl_lower in conf_levels:
+        quants.append([cl_lower, 1-cl_lower])
+
+    # Check calibration on test dataset
+    cal_error, unc_pcts = check_calibration(predictive2, Y2, quants)
+
+    # Calibrate on eval dataset
+
     # Compute predicted CDF
     predicted_cdf = np.mean(predictive["obs"].cpu().numpy().squeeze() <= Y.cpu().numpy().squeeze(), axis=0)
 
@@ -199,15 +236,22 @@ def check_calibration(predictive, Y, folder, plot=False):
     for i, p in enumerate(predicted_cdf):
         empirical_cdf[i] = np.sum(predicted_cdf <= p)/len(predicted_cdf)
 
-    # Compute calibration error
-    w = 1 # NOTE: add a weight?
-    cal_error = np.sum(w*(predicted_cdf-empirical_cdf)**2)
-    
+    # Fit calibrator
+    isotonic = IsotonicRegression(out_of_bounds='clip')
+    isotonic.fit(empirical_cdf, predicted_cdf)
+
+
+    # Check again calibration on test dataset
+    new_quants = [isotonic.transform(q) for q in quants]
+    new_cal_error, cal_pcts = check_calibration(predictive2, Y2, new_quants)
+
+
     # Plot calibration graph
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
-        ax.scatter(predicted_cdf, empirical_cdf, alpha=0.7, s=3)
+        ax.plot(conf_levels*2, unc_pcts[::-1], '-o', color='purple', label='Uncalibrated')
+        ax.plot(conf_levels*2, cal_pcts[::-1], '-o', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)
@@ -219,19 +263,4 @@ def check_calibration(predictive, Y, folder, plot=False):
         plt.savefig(f'{save_path}' + 'calibration' + '.png')
         plt.clf()
     
-    return cal_error
-
-
-### TODO: Finish if it is needed
-def calibrate(folder):
-    """
-    Function that computes the calibration error on the test dataset,
-    train a calibrator on the evaluation dataset and check again the 
-    error on test dataset
-    """
-    # Check calibration on test dataset
-    cal_error = check_calibration()
-
-    # Calibrate on eval dataset
-
-    # Check again calibration on test dataset
+    return cal_error, new_cal_error

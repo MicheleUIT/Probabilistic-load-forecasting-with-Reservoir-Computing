@@ -8,7 +8,7 @@ from pyro.ops.stats import autocorrelation
 from pyro.contrib.forecast.evaluate import eval_crps
 from tqdm import trange
 
-from inference.bayesian.utils import check_calibration, check_convergence, acceptance_rate
+from inference.bayesian.utils import check_convergence, acceptance_rate, calibrate
 
 
 
@@ -47,7 +47,15 @@ def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
     return diagnostics
 
 
-def pred_SVI(model, guide, X, Y, num_samples, plot, diagnostics):
+def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagnostics):
+
+    # Use validation set for hyperparameters tuning
+    if sweep:
+        X, Y = X_val, Y_val
+        X2, Y2 = X_test, Y_test
+    else:
+        X, Y = X_test, Y_test
+        X2, Y2 = X_val, Y_val
 
     # Perform inference
     start_time = process_time()
@@ -70,7 +78,11 @@ def pred_SVI(model, guide, X, Y, num_samples, plot, diagnostics):
     diagnostics["mse"] = mse
 
     # Compute calibration error
-    diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)
+    predictive2 = Predictive(model, guide=guide, num_samples=num_samples)(x=X2, y=None)
+    # Calibrate
+    cal_error, new_cal_error = calibrate(predictive, predictive2, Y, Y2, folder="svi", plot=plot)
+    diagnostics["cal_error"] = cal_error
+    diagnostics["new_cal_error"] = new_cal_error
 
     # Continuous ranked probability score
     crps = eval_crps(predictive['obs'], Y.squeeze())
@@ -137,7 +149,15 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
     return samples, diagnostics
 
 
-def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
+def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, inference_name):
+
+    # Use validation set for hyperparameters tuning
+    if sweep:
+        X, Y = X_val, Y_val
+        X2, Y2 = X_test, Y_test
+    else:
+        X, Y = X_test, Y_test
+        X2, Y2 = X_val, Y_val
 
     # Find when it converged
     acc_rate = diagnostics["acceptance_rate"]
@@ -165,7 +185,11 @@ def pred_MCMC(model, samples, X, Y, plot, diagnostics, inference_name):
     diagnostics["mse"] = mse
 
     # Compute calibration error
-    diagnostics["cal_error"] = check_calibration(predictive, Y, folder="mcmc", plot=plot)
+    predictive2 = Predictive(model, samples)(x=X2, y=None)
+    # Calibrate
+    cal_error, new_cal_error = calibrate(predictive, predictive2, Y, Y2, folder="mcmc", plot=plot)
+    diagnostics["cal_error"] = cal_error
+    diagnostics["new_cal_error"] = new_cal_error
 
     # Continuous ranked probability score
     crps = eval_crps(predictive['obs'], Y.squeeze())

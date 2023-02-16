@@ -3,7 +3,7 @@ import numpy as np
 
 from time import process_time
 from tqdm import trange
-from inference.frequentist.utils import compute_coverage_len, check_calibration, eval_crps
+from inference.frequentist.utils import compute_coverage_len, calibrate, eval_crps
 
 
 
@@ -41,9 +41,17 @@ def train_QR(model, X, Y, lr, epochs, quantiles):
     return diagnostics
 
 
-def pred_QR(model, X, Y, plot, diagnostics, quantiles):
+def pred_QR(model, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, quantiles):
 
     model.eval()
+
+    # Use validation set for hyperparameters tuning
+    if sweep:
+        X, Y = X_val, Y_val
+        X2, Y2 = X_test, Y_test
+    else:
+        X, Y = X_test, Y_test
+        X2, Y2 = X_val, Y_val
 
     # Perform inference
     start_time = process_time()
@@ -61,7 +69,6 @@ def pred_QR(model, X, Y, plot, diagnostics, quantiles):
     diagnostics["width95"] = q_hi - q_low
 
     # Check coverage
-    # NOTE: is it useful?
     if predictive.dim() > 1:
         _, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
         diagnostics["avg_length"] = avg_length
@@ -73,11 +80,18 @@ def pred_QR(model, X, Y, plot, diagnostics, quantiles):
     diagnostics["mse"] = mse
 
     # Compute calibration error
-    diagnostics["cal_error"] = check_calibration(predictive, Y, quantiles, "q_regr", plot=plot)
+    predictive2 = model(X2).detach().squeeze()
+    # Calibrate
+    cal_error, new_cal_error = calibrate(predictive, predictive2, Y, Y2, folder="q_regr", plot=plot)
+    diagnostics["cal_error"] = cal_error
+    diagnostics["new_cal_error"] = new_cal_error
 
     # Continuous ranked probability score
     crps = eval_crps(quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())
     diagnostics["crps"] = crps
+    # # Compute CRPS after calibration
+    # corr_crps = eval_crps(corr_quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())
+    # diagnostics["corr_crps"] = corr_crps
 
     return predictive, diagnostics
 
