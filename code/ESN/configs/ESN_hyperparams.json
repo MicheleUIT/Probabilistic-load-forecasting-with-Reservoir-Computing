@@ -1,7 +1,7 @@
 {
-    "n_dim": 20, 
+    "n_dim": 32, 
     "regression_method": "ridge", 
-    "n_internal_units": 500, 
+    "n_internal_units": 512, 
     "n_drop": 0, 
     "noise_level": 0.0, 
     "teacher_shift": 0.0, 

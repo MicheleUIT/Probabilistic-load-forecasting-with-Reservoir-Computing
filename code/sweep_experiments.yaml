@@ -10,7 +10,7 @@ parameters:
     dataset:
         value: "acea"
     model_widths:
-        values: [[500, 1], [500, 250, 1], [500, 300, 100, 1]]
+        values: [[512, 1], [512, 256, 1], [512, 256, 128, 1]]
     activation:
         values: ["tanh", "relu"]
     distributions:
