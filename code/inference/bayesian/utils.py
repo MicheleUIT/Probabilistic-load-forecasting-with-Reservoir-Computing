@@ -250,8 +250,8 @@ def calibrate(predictive, predictive2, Y, Y2, folder, plot=False):
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
-        ax.plot(conf_levels*2, unc_pcts[::-1], '-o', color='purple', label='Uncalibrated')
-        ax.plot(conf_levels*2, cal_pcts[::-1], '-o', color='red', label='Calibrated')
+        ax.plot(conf_levels*2, unc_pcts[::-1], '-x', color='purple', label='Uncalibrated')
+        ax.plot(conf_levels*2, cal_pcts[::-1], '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)

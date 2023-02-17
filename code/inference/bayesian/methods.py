@@ -191,6 +191,7 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
 
+    # FIXME: use "discrete" CRPS and add CRPS after calibration
     # Continuous ranked probability score
     crps = eval_crps(predictive['obs'], Y.squeeze())
     diagnostics["crps"] = crps

@@ -82,16 +82,16 @@ def pred_QR(model, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, quant
     # Compute calibration error
     predictive2 = model(X2).detach().squeeze()
     # Calibrate
-    cal_error, new_cal_error = calibrate(predictive, predictive2, Y, Y2, folder="q_regr", plot=plot)
+    cal_error, new_cal_error, new_quantiles = calibrate(predictive, predictive2, Y, Y2, quantiles, folder="q_regr", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
 
     # Continuous ranked probability score
     crps = eval_crps(quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())
     diagnostics["crps"] = crps
-    # # Compute CRPS after calibration
-    # corr_crps = eval_crps(corr_quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())
-    # diagnostics["corr_crps"] = corr_crps
+    # Compute CRPS after calibration
+    new_crps = eval_crps(new_quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())
+    diagnostics["new_crps"] = new_crps
 
     return predictive, diagnostics
 

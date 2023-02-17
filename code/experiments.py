@@ -23,10 +23,10 @@ config = {
             "dim_reduction": False,
             "num_chains": 10,
             "num_samples": 10000,
-            "inference": "svi",
+            "inference": "q_regr",
             "lr": 0.03,
             "num_iterations": 100,
-            "plot": True,
+            "plot": False,
             "seed": 1,
             "print_results": False,
             "sweep": True
@@ -66,9 +66,8 @@ quantiles.append(0.995)
 
 train_times = []
 inf_times = []
-cal_errors = []
-new_cal_errors = []
-crpss = []
+cal_errors, new_cal_errors = [], []
+crpss, new_crpss = [], []
 losses = []
 widths95 = []
 widths99 = []
@@ -108,6 +107,7 @@ for s in range(config.seed):
     widths95.append(diagnostics['width95'])
     widths99.append(diagnostics['width99'])
     crpss.append(diagnostics['crps'])
+    new_crpss.append(diagnostics['new_crps'])
     mses.append(diagnostics['mse'])
     if "final_loss" in diagnostics.keys(): # MCMC doesn't have a loss
         losses.append(diagnostics['final_loss'])
@@ -133,6 +133,8 @@ m_width99 = np.asarray(widths99).mean()
 s_width99 = np.asarray(widths99).std()
 m_crps = np.asarray(crpss).mean()
 s_crps = np.asarray(crpss).std()
+m_new_crps = np.asarray(new_crpss).mean()
+s_new_crps = np.asarray(new_crpss).std()
 m_mse = np.asarray(mses).mean()
 s_mse = np.asarray(mses).std()
 m_loss = np.asarray(losses).mean()
@@ -152,6 +154,6 @@ wandb.log({"m_final_loss": s_loss})
 if config.print_results:
     df = pd.DataFrame({"seed": range(config.seed), "train_times": train_times, "inf_times": inf_times,
                        "cal_errors": cal_errors, "new_cal_errors": new_cal_errors, "width95": widths95, "width99": widths99,
-                       "MSE": mses, "CRPS": crpss, "final_loss": losses})
+                       "MSE": mses, "CRPS": crpss, "new_CRPS": new_crpss, "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
         df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 

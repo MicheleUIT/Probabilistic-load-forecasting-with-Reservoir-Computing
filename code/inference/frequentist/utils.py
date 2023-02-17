@@ -67,7 +67,7 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     # Calibrate on eval dataset
     # Fit calibrator
     isotonic = IsotonicRegression(out_of_bounds='clip')
-    isotonic.fit(quantiles, predictive.cpu().numpy())
+    isotonic.fit(quantiles, unc_cdf)
 
     # Check again calibration on test dataset
     new_quantiles = isotonic.transform(quantiles)
@@ -77,8 +77,8 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
-        ax.plot(quantiles, unc_cdf, '-o', color='purple', label='Uncalibrated')
-        ax.plot(quantiles, cal_cdf, '-o', color='purple', label='Calibrated')
+        ax.plot(quantiles, unc_cdf, '-x', color='purple', label='Uncalibrated')
+        ax.plot(quantiles, cal_cdf, '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)
@@ -91,7 +91,7 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
         plt.show()
         plt.clf()
     
-    return cal_error, new_cal_error
+    return cal_error, new_cal_error, new_quantiles
 
 
 def eval_crps(quantiles, tau, y):
