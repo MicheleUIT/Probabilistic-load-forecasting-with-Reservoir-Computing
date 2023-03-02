@@ -8,25 +8,22 @@ metric:
     
 parameters:
     dataset:
-        value: "acea"
+        value: "spain"
     model_widths:
         values: [[512, 1], [512, 256, 1], [512, 256, 128, 1]]
     activation:
         values: ["tanh", "relu"]
     distributions:
-        values: [["gauss", "unif", "gauss"],
-                ["unif", "unif", "gauss"],
-                ["lapl", "unif", "gauss"],
-                ["bern", "unif", "gauss"]]
+        value: ["gauss", "unif", "gauss"]
     parameters:
         value: [[0,1],[0,10]]
     dim_reduction:
         value: False
     inference:
-        value: "svi"
+        value: "q_regr"
     num_iterations:
         min: 30
-        max: 200
+        max: 1000
     lr:
         min: 0.0001
         max: 0.1

@@ -62,8 +62,11 @@ class BayesianModel(PyroModule):
 
         sigma = pyro.sample("sigma", self.distributions[-2]).to(self.device)
 
-        with pyro.plate("data", x.shape[0], device=self.device):
-            obs = pyro.sample("obs", self.distributions[-1](mean, sigma), obs=y).to(self.device)
+        # with pyro.plate("data", size=x.shape[0], subsample_size=50, device=self.device) as ind:
+        with pyro.plate("data", device=self.device):
+            obs = pyro.sample("obs", self.distributions[-1](mean, sigma),
+                            #   obs=y.index_select(0, ind) if y != None else y).to(self.device)
+                              obs=y).to(self.device)
         return mean
 
     
@@ -114,7 +117,8 @@ class BayesianModel(PyroModule):
                 except:
                     raise ValueError(f"Missing parameter for distribution {i} ({distr_list[i]}).")
                 else:
-                    distributions.append(dist.RelaxedBernoulli(torch.tensor(float(p[-1]), device=self.device))) # >0
+                    distributions.append(dist.RelaxedBernoulli(torch.tensor(float(p[1]), device=self.device), # >0
+                                                               torch.tensor(float(p[0]), device=self.device)))
                     
             else:
                 raise ValueError(f"{distr_list[i]['name']} prior distribution not defined.")
