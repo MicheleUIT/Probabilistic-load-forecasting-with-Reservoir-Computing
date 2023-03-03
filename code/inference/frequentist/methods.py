@@ -59,32 +59,42 @@ def pred_QR(model, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, quant
     inference_time = process_time() - start_time
     diagnostics["inference_time"] = inference_time
 
-    # 0.99 quantiles
-    q_low = predictive[:,1].cpu().numpy()
-    q_hi = predictive[:,-1].cpu().numpy()
-    diagnostics["width99"] = q_hi - q_low
-    # and 0.95 quantiles
-    q_low = predictive[:,2].cpu().numpy()
-    q_hi = predictive[:,-2].cpu().numpy()
-    diagnostics["width95"] = q_hi - q_low
-
-    # Check coverage
-    if predictive.dim() > 1:
-        _, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
-        diagnostics["avg_length"] = avg_length
-    
-    # Mean Squared Error
-    mean_index = int(predictive.shape[1]/2)
-    mean = predictive[:,mean_index].cpu().numpy()
-    mse = np.mean((mean-Y.cpu().numpy())**2)
-    diagnostics["mse"] = mse
-
     # Compute calibration error
     predictive2 = model(X2).detach().squeeze()
     # Calibrate
     cal_error, new_cal_error, new_quantiles = calibrate(predictive, predictive2, Y, Y2, quantiles, folder="q_regr", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
+
+    # 0.95 quantiles
+    q_low = predictive[:,2].cpu().numpy()
+    q_hi = predictive[:,-2].cpu().numpy()
+    diagnostics["width"] = np.mean(q_hi - q_low)
+    # After calibration
+    new_q_low = predictive2[:,2].cpu().numpy()
+    new_q_hi = predictive2[:,-2].cpu().numpy()
+    diagnostics["new_width"] = np.mean(new_q_hi - new_q_low)
+
+    # Check coverage with 95% quantiles
+    if predictive.dim() > 1:
+        coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
+        diagnostics["coverage"] = coverage
+        diagnostics["avg_length"] = avg_length
+        # Re-compute after calibration
+        coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), new_q_low, new_q_hi)
+        diagnostics["new_coverage"] = coverage
+        diagnostics["new_avg_length"] = avg_length
+    
+    # Mean Squared Error
+    mean_index = int(predictive.shape[1]/2)
+    mean = predictive[:,mean_index].cpu().numpy()
+    mse = np.mean((mean-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
+    # After calibration
+    mean_index = int(predictive2.shape[1]/2)
+    mean = predictive2[:,mean_index].cpu().numpy()
+    mse = np.mean((mean-Y.cpu().numpy())**2)
+    diagnostics["new_mse"] = mse
 
     # Continuous ranked probability score
     crps = eval_crps(quantiles, predictive.cpu().numpy(), Y.unsqueeze(dim=1).cpu().numpy())

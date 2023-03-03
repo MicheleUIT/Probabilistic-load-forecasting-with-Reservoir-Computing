@@ -16,7 +16,7 @@ from ESN.utils import run_esn
 
 config = {
             "dataset": "acea",
-            "model_widths": [512, 1],
+            "model_widths": [512, 256, 1],
             "activation": "tanh",
             "distributions": ["gauss", "unif", "gauss"],
             "parameters": [[0,1],[0,10]],
@@ -24,15 +24,15 @@ config = {
             "num_chains": 10,
             "num_samples": 10000,
             "inference": "q_regr",
-            "lr": 0.03,
-            "num_iterations": 100,
+            "lr": 0.1,
+            "num_iterations": 500,
             "plot": False,
             "seed": 1,
             "print_results": False,
             "sweep": True
             }
 
-os.environ["WANDB_MODE"]="offline"
+# os.environ["WANDB_MODE"]="offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
@@ -69,9 +69,9 @@ inf_times = []
 cal_errors, new_cal_errors = [], []
 crpss, new_crpss = [], []
 losses = []
-widths95 = []
-widths99 = []
-mses = []
+widths, new_widths = [], []
+mses, new_mses = [], []
+coverages, new_coverages = [], []
 
 for s in range(config.seed):
     # Set seed for reproducibility
@@ -104,11 +104,14 @@ for s in range(config.seed):
     train_times.append(diagnostics['train_time'])
     cal_errors.append(diagnostics['cal_error'])
     new_cal_errors.append(diagnostics['new_cal_error'])
-    widths95.append(diagnostics['width95'])
-    widths99.append(diagnostics['width99'])
+    widths.append(diagnostics['width'])
+    new_widths.append(diagnostics['new_width'])
     crpss.append(diagnostics['crps'])
     new_crpss.append(diagnostics['new_crps'])
     mses.append(diagnostics['mse'])
+    new_mses.append(diagnostics['new_mse'])
+    coverages.append(diagnostics['coverage'])
+    new_coverages.append(diagnostics['new_coverage'])
     if "final_loss" in diagnostics.keys(): # MCMC doesn't have a loss
         losses.append(diagnostics['final_loss'])
     else:
@@ -127,16 +130,22 @@ m_cal = np.asarray(cal_errors).mean()
 s_cal = np.asarray(cal_errors).std()
 m_new_cal = np.asarray(new_cal_errors).mean()
 s_new_cal = np.asarray(new_cal_errors).std()
-m_width95 = np.asarray(widths95).mean()
-s_width95 = np.asarray(widths95).std()
-m_width99 = np.asarray(widths99).mean()
-s_width99 = np.asarray(widths99).std()
+m_width = np.asarray(widths).mean()
+s_width = np.asarray(widths).std()
+m_new_width = np.asarray(new_widths).mean()
+s_new_width = np.asarray(new_widths).std()
 m_crps = np.asarray(crpss).mean()
 s_crps = np.asarray(crpss).std()
 m_new_crps = np.asarray(new_crpss).mean()
 s_new_crps = np.asarray(new_crpss).std()
 m_mse = np.asarray(mses).mean()
 s_mse = np.asarray(mses).std()
+m_new_mse = np.asarray(new_mses).mean()
+s_new_mse = np.asarray(new_mses).std()
+m_cov = np.asarray(coverages).mean()
+s_cov = np.asarray(coverages).std()
+m_new_cov = np.asarray(new_coverages).mean()
+s_new_cov = np.asarray(new_coverages).std()
 m_loss = np.asarray(losses).mean()
 s_loss = np.asarray(losses).std()
 
@@ -145,15 +154,35 @@ wandb.log({"m_train_time": m_time})
 wandb.log({"s_train_time": s_time})
 wandb.log({"m_cal_error": m_cal})
 wandb.log({"s_cal_error": s_cal})
+wandb.log({"m_new_cal_error": m_new_cal})
+wandb.log({"s_new_cal_error": s_new_cal})
 wandb.log({"m_crps": m_crps})
 wandb.log({"s_crps": s_crps})
+wandb.log({"m_new_crps": m_new_crps})
+wandb.log({"s_new_crps": s_new_crps})
+wandb.log({"m_mse": m_mse})
+wandb.log({"s_mse": s_mse})
+wandb.log({"m_new_mse": m_new_mse})
+wandb.log({"s_new_mse": s_new_mse})
+wandb.log({"m_width": m_width})
+wandb.log({"s_width": s_width})
+wandb.log({"m_new_width": m_new_width})
+wandb.log({"s_new_width": s_new_width})
+wandb.log({"m_cov": m_cov})
+wandb.log({"s_cov": s_cov})
+wandb.log({"m_new_cov": m_new_cov})
+wandb.log({"s_new_cov": s_new_cov})
 wandb.log({"m_final_loss": m_loss})
 wandb.log({"m_final_loss": s_loss})
 
 
 if config.print_results:
     df = pd.DataFrame({"seed": range(config.seed), "train_times": train_times, "inf_times": inf_times,
-                       "cal_errors": cal_errors, "new_cal_errors": new_cal_errors, "width95": widths95, "width99": widths99,
-                       "MSE": mses, "CRPS": crpss, "new_CRPS": new_crpss, "final_loss": losses})
+                       "cal_errors": cal_errors, "new_cal_errors": new_cal_errors,
+                       "coverage": coverages, "new_coverage": new_coverages,
+                       "width": widths, "new_width": new_widths,
+                       "MSE": mses, "new_MSE": new_mses,
+                       "CRPS": crpss, "new_CRPS": new_crpss,
+                       "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
         df.to_excel(writer, sheet_name=f"sheet_{config.dataset}_{config.inference}", index=False) 
