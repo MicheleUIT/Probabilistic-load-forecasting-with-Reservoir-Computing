@@ -9,3 +9,4 @@ dump/
 .vscode/
 *.xlsx
 code/ESN/saved/
+*.txt

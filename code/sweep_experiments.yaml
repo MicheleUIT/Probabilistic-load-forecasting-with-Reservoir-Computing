@@ -8,7 +8,7 @@ metric:
     
 parameters:
     dataset:
-        value: "spain"
+        value: "acea"
     model_widths:
         values: [[512, 1], [512, 256, 1], [512, 256, 128, 1]]
     activation:
