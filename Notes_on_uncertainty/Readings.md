@@ -19,7 +19,9 @@
 - [Convergence diagnostics for Markov chain Monte Carlo](https://arxiv.org/pdf/1909.11827.pdf), go to [[Markov Chain Monte Carlo#^7ae837|MCMC]]
 - [Markov Chain Monte Carlo Convergence Diagnostics, A Comparative Review](https://www.jstor.org/stable/2291683#metadata_info_tab_contents), go to [[Markov Chain Monte Carlo#^7ae837|MCMC]]
 - [Quantile Regression](https://pubs.aeaweb.org/doi/pdfplus/10.1257/jep.15.4.143), go to [[Quantile regression]]
+- [High-dimensional covariance matrix estimation using a low-rank and diagonal decomposition](https://arxiv.org/pdf/1802.06048.pdf)
 - 
+
 
 
 ## To read:
