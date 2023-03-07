@@ -93,9 +93,27 @@ We search for the distribution of weights that generated the data $p(\omega|X,Y)
 - There is a sum over all data points, it doesn't scale with a lot of data. Solution: mini-batch.
 - Evaluating the log-likelihood. Solution: Monte Carlo integration (at least to estimate derivatives wrt $\theta$).
 
-## Personalised variational distribution
+## Custom variational distribution
 
 Il problema dello scrivere una guida custom è fare in modo che le variabili latenti siano correlate. Un approccio è quello usato dall'autoguide: usare gaussiane univariate e poi correlarle con la decomposizione di Cholesky (guarda [qui](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4066115)).
 Se io voglio usare distribuzioni diverse dalla gaussiana, come adattare questo approccio? Si possono mescolare distribuzioni diverse?
 Una possibilità è di usare le gaussiane inizialmente, ma poi quando si va a fare il sampling le si trasforma in distribuzioni diverse (guarda [qui](https://stats.stackexchange.com/a/415553), ma si può fare? Una volta che le correlo posso trasformarle? C'è un altro metodo per altre distribuzioni?)
 Ma mi serve davvero tutto questo controllo?
+
+## Sparsity inducing varational distributions
+
+^a68cbd
+
+Using as variational distribution a multi-variate Gaussian that assumes correlation between all dimensions consumes too much memory. Consider an MLP where a linear layer alone has a $500\times 30$ parameters (it reduces the input from a dimension of 500 to a dimension of 30), if those $500\times 30 =15000$ parameters $\omega$ are correlated, then the covariance matrix will have a size of $15000\times 15000=225000000$, which is often too large to store in GPU memory.
+
+Let's assume that $\omega\in\mathbf{R}^p$ is distributed as a $p$-variate normal with 0 mean and covariance matrix $\Sigma$, it depends on a smaller number of latent parameters $\phi\in\mathbf{R}^r$, that is we have $\omega=R\phi+\epsilon$, where $R$ is a $p\times r$ matrix with $r<p$, $\phi$ is a $r$-dimensional random variable from a Gaussian distribution with 0 mean and variance $\mathbf{1}_r$, and $\epsilon$ is a $p$-dimensional vector of independently distributed error terms with zero mean and finite variance $\text{var}(\epsilon)=\Psi$. Then we can compute the covariance matrix of $\omega$
+$$
+\begin{align}
+	\text{cov}(\omega)&=\mathbf{E}[(\omega-\mu)(\omega-\mu)^T]=\mathbf{E}[\omega\omega^T]=\\
+	&=\mathbf{E}[(R\phi+\epsilon)(R\phi+\epsilon)^T]=\\
+	&=\mathbf{E}[R\phi\phi^T R^T+\epsilon\epsilon^T+R\phi\epsilon^T+\epsilon\phi^T R^T]=\\
+	&=R\mathbf{E}[\phi\phi^T]R^T+\mathbf{E}[\epsilon\epsilon^T]+R\mathbf{E}[\phi\epsilon^T]+\mathbf{E}[\epsilon\phi^T] R^T=\\
+	&=RR^T+\Psi
+\end{align}
+$$
+because $\mathbf{E}[\epsilon\phi^T]=0$. So the covariance can be expressed as the sum of a low-rank matrix $RR^T$ of rank $r$, and a diagonal matrix $\Psi$.

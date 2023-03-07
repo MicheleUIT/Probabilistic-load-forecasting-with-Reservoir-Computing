@@ -9,7 +9,7 @@
 3) Compare with fully trainable architectures (https://github.com/manuwhs/BayesianRNN)
 4) Address the problem of doing regression on the output of the reservoir
 	- It's too large for MCMC
-	- With VI there is no problem
+	- With VI there is no problem (there is a problem, see [[Uncertainty in Deep Learning#^a68cbd|sparse covariance]])
 	- [Here](https://arxiv.org/abs/1806.10728) they sample the number of regression parameter
 	- Other dimensionality reduction techniques, like PCA and laplacian eigenmaps
 5) Add [[Calibration|calibration]] on top and compare the different methods
