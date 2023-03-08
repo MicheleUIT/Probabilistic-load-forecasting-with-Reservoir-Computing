@@ -85,15 +85,15 @@ def pred_QR(model, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, quant
         diagnostics["new_coverage"] = coverage
         diagnostics["new_avg_length"] = avg_length
     
-    # Mean Squared Error
+    # Mean Squared Error wrt the median
     mean_index = int(predictive.shape[1]/2)
-    mean = predictive[:,mean_index].cpu().numpy()
-    mse = np.mean((mean-Y.cpu().numpy())**2)
+    median = predictive[:,mean_index].cpu().numpy()
+    mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["mse"] = mse
     # After calibration
     mean_index = int(predictive2.shape[1]/2)
-    mean = predictive2[:,mean_index].cpu().numpy()
-    mse = np.mean((mean-Y.cpu().numpy())**2)
+    median = predictive2[:,mean_index].cpu().numpy()
+    mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["new_mse"] = mse
 
     # Continuous ranked probability score
