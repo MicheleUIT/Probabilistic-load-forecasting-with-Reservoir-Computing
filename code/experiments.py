@@ -7,7 +7,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from pyro.infer.autoguide import AutoMultivariateNormal, init_to_mean
+from pyro.infer.autoguide import AutoMultivariateNormal, AutoLowRankMultivariateNormal, init_to_mean
 from pathlib import Path
 from inference.bayesian.models import TorchModel, BayesianModel, HorseshoeSSVS
 from inference.inference import inference
@@ -22,17 +22,18 @@ config = {
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
             "num_chains": 10,
-            "num_samples": 10000,
-            "inference": "q_regr",
+            "num_samples": 1000,
+            "inference": "svi",
             "lr": 0.1,
             "num_iterations": 500,
+            "rank": None,
             "plot": False,
             "seed": 1,
-            "print_results": False,
-            "sweep": True
+            "print_results": True,
+            "sweep": False
             }
 
-# os.environ["WANDB_MODE"]="offline"
+os.environ["WANDB_MODE"]="offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
@@ -67,6 +68,7 @@ quantiles.append(0.995)
 train_times = []
 inf_times = []
 cal_errors, new_cal_errors = [], []
+e_crpss = []
 crpss, new_crpss = [], []
 losses = []
 widths, new_widths = [], []
@@ -91,7 +93,10 @@ for s in range(config.seed):
     if device != 'cpu':
         torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-    guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
+    if config.dim_reduction:
+        guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
+    else:
+        guide = AutoLowRankMultivariateNormal(model, init_loc_fn=init_to_mean, rank=config.rank)
 
     # Perform inference
     predictive, diagnostics = inference(config, model, guide, 
@@ -112,14 +117,22 @@ for s in range(config.seed):
     new_mses.append(diagnostics['new_mse'])
     coverages.append(diagnostics['coverage'])
     new_coverages.append(diagnostics['new_coverage'])
+
     if "final_loss" in diagnostics.keys(): # MCMC doesn't have a loss
         losses.append(diagnostics['final_loss'])
     else:
         losses.append(0)
+
     if "inference_time" in diagnostics.keys(): # MCMC doesn't have a inference_time
         inf_times.append(diagnostics['inference_time'])
     else:
         inf_times.append(0)
+
+    if "e_crps" in diagnostics.keys(): # quantile regression doesn't have an empirical CRPS
+        e_crpss.append(diagnostics['e_crps'])
+    else:
+        e_crpss.append(0)
+
 
 
 m_time = np.asarray(train_times).mean()
@@ -134,6 +147,8 @@ m_width = np.asarray(widths).mean()
 s_width = np.asarray(widths).std()
 m_new_width = np.asarray(new_widths).mean()
 s_new_width = np.asarray(new_widths).std()
+m_e_crps = np.asarray(e_crpss).mean()
+s_e_crps = np.asarray(e_crpss).std()
 m_crps = np.asarray(crpss).mean()
 s_crps = np.asarray(crpss).std()
 m_new_crps = np.asarray(new_crpss).mean()
@@ -156,6 +171,8 @@ wandb.log({"m_cal_error": m_cal})
 wandb.log({"s_cal_error": s_cal})
 wandb.log({"m_new_cal_error": m_new_cal})
 wandb.log({"s_new_cal_error": s_new_cal})
+wandb.log({"m_e_crps": m_e_crps})
+wandb.log({"s_e_crps": s_e_crps})
 wandb.log({"m_crps": m_crps})
 wandb.log({"s_crps": s_crps})
 wandb.log({"m_new_crps": m_new_crps})
@@ -182,6 +199,7 @@ if config.print_results:
                        "coverage": coverages, "new_coverage": new_coverages,
                        "width": widths, "new_width": new_widths,
                        "MSE": mses, "new_MSE": new_mses,
+                       "e_CRPS": e_crpss,
                        "CRPS": crpss, "new_CRPS": new_crpss,
                        "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:

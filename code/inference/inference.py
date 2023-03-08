@@ -5,7 +5,7 @@ from inference.frequentist.methods import train_QR, pred_QR
 def inference(config, model, guide, X_train, Y_train, X_val, Y_val, X_test, Y_test, quantiles=None):
     if config.inference == "svi":
         diagnostics = train_SVI(model, guide, X_train, Y_train, config.lr, config.num_iterations)
-        predictive, diagnostics = pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, config.num_samples, config.plot, config.sweep, diagnostics)
+        predictive, diagnostics = pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, config.num_samples, config.plot, config.sweep, diagnostics, quantiles)
         return predictive, diagnostics
 
     elif config.inference == "mcmc" or config.inference == "ssvs":

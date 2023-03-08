@@ -163,6 +163,17 @@ def r_hat_plot(r_max, name, plot, inference_name):
     return t
 
 
+def compute_coverage_len(y_test, y_lower, y_upper):
+    """ 
+    Compute average coverage and length of prediction intervals
+    """
+    coverage = np.mean((y_test >= y_lower) & (y_test <= y_upper))
+    avg_length = np.mean(abs(y_upper - y_lower))
+    avg_length = avg_length/(y_test.max()-y_test.min())
+    
+    return coverage, avg_length
+
+
 def plot_forecast(predictive, Y, name):
     # draw and compute the 95% confidence interval
     target_interval = 0.95
@@ -205,12 +216,12 @@ def check_calibration(predictive, Y, quants):
     p = np.asarray(quants)[:,0] * 2
     p_hat = np.asarray(pcts)
     w = 1
-    cal_error = np.sum(w*(p-p_hat)**2)
+    cal_error = np.sum(w*(np.flip(p)-p_hat)**2) # FIXME: fix cal error, it's not correct rn
     
     return cal_error, pcts
 
 
-def calibrate(predictive, predictive2, Y, Y2, folder, plot=False):
+def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     """
     Function that computes the calibration error on the test dataset,
     train a calibrator on the evaluation dataset and check again the 
@@ -218,10 +229,9 @@ def calibrate(predictive, predictive2, Y, Y2, folder, plot=False):
     """
 
     # Quantile levels used to check calibration
-    conf_levels = np.arange(start=0.025, stop=0.5, step=0.025)
     quants = []
-    for cl_lower in conf_levels:
-        quants.append([cl_lower, 1-cl_lower])
+    for i in range(int(len(quantiles)/2)):
+        quants.append([quantiles[i], quantiles[len(quantiles)-1-i]])
 
     # Check calibration on test dataset
     cal_error, unc_pcts = check_calibration(predictive2, Y2, quants)
@@ -240,18 +250,27 @@ def calibrate(predictive, predictive2, Y, Y2, folder, plot=False):
     isotonic = IsotonicRegression(out_of_bounds='clip')
     isotonic.fit(empirical_cdf, predicted_cdf)
 
-
     # Check again calibration on test dataset
     new_quants = [isotonic.transform(q) for q in quants]
     new_cal_error, cal_pcts = check_calibration(predictive2, Y2, new_quants)
 
+    # Return calibrated quantiles
+    new_quant_up, new_quant_down = [], []
+    for i in range(len(new_quants)):
+        new_quant_up.append(new_quants[i][0])
+        new_quant_down.append(new_quants[len(new_quants)-1-i][1])
+    new_quantiles = new_quant_up + new_quant_down
+
 
     # Plot calibration graph
+    q = np.asarray(quantiles)
+    r = q[21:] - np.flip(q[:21])
+
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
-        ax.plot(conf_levels*2, unc_pcts[::-1], '-x', color='purple', label='Uncalibrated')
-        ax.plot(conf_levels*2, cal_pcts[::-1], '-+', color='red', label='Calibrated')
+        ax.plot(r, unc_pcts[::-1], '-x', color='purple', label='Uncalibrated')
+        ax.plot(r, cal_pcts[::-1], '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)
@@ -263,4 +282,18 @@ def calibrate(predictive, predictive2, Y, Y2, folder, plot=False):
         plt.savefig(f'{save_path}' + 'calibration' + '.png')
         plt.clf()
     
-    return cal_error, new_cal_error
+    return cal_error, new_cal_error, new_quantiles
+
+
+def num_eval_crps(quantiles, tau, y):
+    """
+    It computes a discrete version of the CRPS
+    so to use it to evaluate quantile regression
+    """
+
+    q = np.asarray(quantiles)[:,np.newaxis]
+    H = np.heaviside(tau-y, 0)
+    dx = np.asarray([tau[i+1,:] - tau[i,:] for i in range(tau.shape[0]-1)])
+    crps = np.mean(np.sum(dx*((q-H)[1:,:]**2), 0))
+
+    return crps
