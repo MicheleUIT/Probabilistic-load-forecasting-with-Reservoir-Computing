@@ -29,7 +29,7 @@ config = {
             "rank": None,
             "plot": False,
             "seed": 1,
-            "print_results": True,
+            "print_results": False,
             "sweep": False
             }
 
