@@ -197,28 +197,21 @@ def plot_forecast(predictive, Y, name):
     pass
 
 
-def check_calibration(predictive, Y, quants):
+def check_calibration(predictive, Y, quantiles):
     """
     It computes the calibration error according to formula (9)
     of paper https://arxiv.org/pdf/1807.00263.pdf
     """
 
-    pcts = []
-
-    for q in quants:
-        lower, upper = np.quantile(predictive["obs"].cpu().numpy().squeeze(), q, axis=0)
-        
-        perc_within = np.mean((Y.cpu().squeeze().numpy() <= upper)&(Y.cpu().squeeze().numpy() >= lower))
-
-        pcts.append(perc_within)
+    # Compute predicted CDF
+    tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
+    predicted_cdf = np.mean(Y.cpu().numpy().squeeze() <= tau, axis=1)
 
     # Compute calibration error
-    p = np.asarray(quants)[:,0] * 2
-    p_hat = np.asarray(pcts)
     w = 1
-    cal_error = np.sum(w*(np.flip(p)-p_hat)**2) # FIXME: fix cal error, it's not correct rn
+    cal_error = np.sum(w*(predicted_cdf-quantiles)**2)
     
-    return cal_error, pcts
+    return cal_error, predicted_cdf
 
 
 def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
@@ -228,39 +221,21 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     error on test dataset (or vice versa)
     """
 
-    # Quantile levels used to check calibration
-    quants = []
-    for i in range(int(len(quantiles)/2)):
-        quants.append([quantiles[i], quantiles[len(quantiles)-1-i]])
+    # Check calibration on first dataset
+    cal_error, unc_cdf = check_calibration(predictive, Y, quantiles)
 
-    # Check calibration on test dataset
-    cal_error, unc_pcts = check_calibration(predictive2, Y2, quants)
-
-    # Calibrate on eval dataset
-
+    # Calibrate on second dataset
     # Compute predicted CDF
-    predicted_cdf = np.mean(predictive["obs"].cpu().numpy().squeeze() <= Y.cpu().numpy().squeeze(), axis=0)
-
-    # Compute empirical CDF
-    empirical_cdf = np.zeros(len(predicted_cdf))
-    for i, p in enumerate(predicted_cdf):
-        empirical_cdf[i] = np.sum(predicted_cdf <= p)/len(predicted_cdf)
+    tau = np.quantile(predictive2["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
+    predicted_cdf = np.mean(Y2.cpu().numpy().squeeze() <= tau, axis=1)
 
     # Fit calibrator
     isotonic = IsotonicRegression(out_of_bounds='clip')
-    isotonic.fit(empirical_cdf, predicted_cdf)
+    isotonic.fit(quantiles, predicted_cdf)
 
-    # Check again calibration on test dataset
-    new_quants = [isotonic.transform(q) for q in quants]
-    new_cal_error, cal_pcts = check_calibration(predictive2, Y2, new_quants)
-
-    # Return calibrated quantiles
-    new_quant_up, new_quant_down = [], []
-    for i in range(len(new_quants)):
-        new_quant_up.append(new_quants[i][0])
-        new_quant_down.append(new_quants[len(new_quants)-1-i][1])
-    new_quantiles = new_quant_up + new_quant_down
-
+    # Check again calibration on first dataset
+    new_quantiles = isotonic.transform(quantiles)
+    new_cal_error, cal_cdf = check_calibration(predictive, Y, new_quantiles)
 
     # Plot calibration graph
     q = np.asarray(quantiles)
@@ -269,8 +244,8 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
-        ax.plot(r, unc_pcts[::-1], '-x', color='purple', label='Uncalibrated')
-        ax.plot(r, cal_pcts[::-1], '-+', color='red', label='Calibrated')
+        ax.plot(quantiles, unc_cdf, '-x', color='purple', label='Uncalibrated')
+        ax.plot(quantiles, cal_cdf, '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)

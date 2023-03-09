@@ -61,17 +61,18 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     error on test dataset (or vice versa)
     """
 
-    # Check calibration on test dataset
-    cal_error, unc_cdf = check_calibration(predictive2, Y2, quantiles)
+    # Check calibration on first dataset
+    cal_error, unc_cdf = check_calibration(predictive, Y, quantiles)
 
-    # Calibrate on eval dataset
+    # Calibrate on second dataset
     # Fit calibrator
+    predicted_cdf = np.mean(Y2.unsqueeze(dim=1).cpu().numpy() <= predictive2.cpu().numpy(), axis=0)
     isotonic = IsotonicRegression(out_of_bounds='clip')
-    isotonic.fit(quantiles, unc_cdf)
+    isotonic.fit(quantiles, predicted_cdf)
 
-    # Check again calibration on test dataset
+    # Check again calibration on first dataset
     new_quantiles = isotonic.transform(quantiles)
-    new_cal_error, cal_cdf = check_calibration(predictive2, Y2, new_quantiles)
+    new_cal_error, cal_cdf = check_calibration(predictive, Y, new_quantiles)
 
     # Plot calibration graph
     if plot:
