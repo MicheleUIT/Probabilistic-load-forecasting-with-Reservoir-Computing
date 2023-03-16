@@ -87,11 +87,11 @@ def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, swee
     diagnostics["new_avg_length"] = avg_length
 
     # Mean Squared Error wrt the median
-    median = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles[21], axis=0) # median
+    median = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles[int(len(quantiles)/2)], axis=0) # median
     mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["mse"] = mse
     # After calibration
-    median = np.quantile(predictive["obs"].cpu().numpy().squeeze(), new_quantiles[21], axis=0) # median
+    median = np.quantile(predictive["obs"].cpu().numpy().squeeze(), new_quantiles[int(len(new_quantiles)/2)], axis=0) # median
     mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["new_mse"] = mse
 

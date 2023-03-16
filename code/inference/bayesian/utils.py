@@ -197,14 +197,13 @@ def plot_forecast(predictive, Y, name):
     pass
 
 
-def check_calibration(predictive, Y, quantiles):
+def check_calibration(tau, Y, quantiles):
     """
     It computes the calibration error according to formula (9)
     of paper https://arxiv.org/pdf/1807.00263.pdf
     """
 
     # Compute predicted CDF
-    tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
     predicted_cdf = np.mean(Y.cpu().numpy().squeeze() <= tau, axis=1)
 
     # Compute calibration error
@@ -222,12 +221,13 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     """
 
     # Check calibration on first dataset
-    cal_error, unc_cdf = check_calibration(predictive, Y, quantiles)
+    tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
+    cal_error, unc_cdf = check_calibration(tau, Y, quantiles)
 
     # Calibrate on second dataset
     # Compute predicted CDF
-    tau = np.quantile(predictive2["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
-    predicted_cdf = np.mean(Y2.cpu().numpy().squeeze() <= tau, axis=1)
+    tau2 = np.quantile(predictive2["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
+    predicted_cdf = np.mean(Y2.cpu().numpy().squeeze() <= tau2, axis=1)
 
     # Fit calibrator
     isotonic = IsotonicRegression(out_of_bounds='clip')
@@ -235,22 +235,19 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
 
     # Check again calibration on first dataset
     new_quantiles = isotonic.transform(quantiles)
-    new_cal_error, cal_cdf = check_calibration(predictive, Y, new_quantiles)
-
-    # Plot calibration graph
-    q = np.asarray(quantiles)
-    r = q[21:] - np.flip(q[:21])
+    new_cal_error, cal_cdf = check_calibration(tau, Y, new_quantiles)
 
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
+        # ax.plot(new_quantiles, predicted_cdf, '-s', color='green', label='Cal data')
         ax.plot(quantiles, unc_cdf, '-x', color='purple', label='Uncalibrated')
-        ax.plot(quantiles, cal_cdf, '-+', color='red', label='Calibrated')
+        ax.plot(new_quantiles, cal_cdf, '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)
         ax.set_title('Predicted CDF vs Empirical CDF', fontsize=17)
-        ax.legend(fontsize=17)
+        ax.legend(fontsize=10)
 
         save_path = './results/plots/' + folder + '/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist

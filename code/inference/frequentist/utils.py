@@ -79,17 +79,16 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
         ax.plot(quantiles, unc_cdf, '-x', color='purple', label='Uncalibrated')
-        ax.plot(quantiles, cal_cdf, '-+', color='red', label='Calibrated')
+        ax.plot(new_quantiles, cal_cdf, '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)
         ax.set_title('Predicted CDF vs Empirical CDF', fontsize=17)
-        ax.legend(fontsize=17)
+        ax.legend(fontsize=10)
 
         save_path = './results/plots/' + folder + '/'
         Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
         plt.savefig(f'{save_path}' + 'calibration' + '.png')
-        plt.show()
         plt.clf()
     
     return cal_error, new_cal_error, new_quantiles
