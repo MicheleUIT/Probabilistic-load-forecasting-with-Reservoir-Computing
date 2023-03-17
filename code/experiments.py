@@ -16,24 +16,24 @@ from ESN.utils import run_esn
 
 config = {
             "dataset": "acea",
-            "model_widths": [512, 256, 1],
+            "model_widths": [512,1],
             "activation": "tanh",
             "distributions": ["gauss", "unif", "gauss"],
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
             "num_chains": 10,
             "num_samples": 1000,
-            "inference": "svi",
-            "lr": 0.1,
+            "inference": "q_regr",
+            "lr": 0.001,
             "num_iterations": 500,
             "rank": None,
-            "plot": False,
+            "plot": True,
             "seed": 1,
-            "print_results": False,
+            "print_results": True,
             "sweep": False
             }
 
-os.environ["WANDB_MODE"]="offline"
+os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
 wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
