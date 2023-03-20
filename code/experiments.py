@@ -21,15 +21,16 @@ config = {
             "distributions": ["gauss", "unif", "gauss"],
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
+            "dropout_p": 0.2,
             "num_chains": 10,
             "num_samples": 1000,
-            "inference": "q_regr",
+            "inference": "dropout",
             "lr": 0.001,
             "num_iterations": 500,
             "rank": None,
-            "plot": True,
+            "plot": False,
             "seed": 1,
-            "print_results": True,
+            "print_results": False,
             "sweep": False
             }
 
@@ -83,7 +84,9 @@ for s in range(config.seed):
     if config.inference == "ssvs":
         model = HorseshoeSSVS(train_embedding.shape[1], 1, type='m', device=device)
     elif config.inference == "q_regr":
-        model = TorchModel(config.model_widths, config.activation, quantiles).to(device)
+        model = TorchModel(config.model_widths, config.activation, quantiles=quantiles).to(device)
+    elif config.inference == "dropout":
+        model = TorchModel(config.model_widths, config.activation, dropout=True, p=config.dropout_p).to(device)
     else:
         model = BayesianModel(torch_model, config, device)
 

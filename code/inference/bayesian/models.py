@@ -13,7 +13,7 @@ class TorchModel(torch.nn.Module):
     :param list widths: List of layers' widths.
     :param string activation: String specifying the activation function to use.
     """
-    def __init__(self, widths, activation, quantiles=None):
+    def __init__(self, widths, activation, dropout=False, p=0.0, quantiles=None):
         super().__init__()
         self.layers = torch.nn.ModuleList()
 
@@ -23,10 +23,14 @@ class TorchModel(torch.nn.Module):
             a = torch.nn.ReLU()
         else:
             raise ValueError(f"{activation} not defined.")
+        
+        dp = torch.nn.Dropout(p)
 
         for i in range(len(widths)-2):
             self.layers.append(torch.nn.Linear(widths[i], widths[i+1]))
             self.layers.append(a)
+            if dropout:
+                self.layers.append(dp)
         
         output = widths[-1] if quantiles==None else len(quantiles)
         self.layers.append(torch.nn.Linear(widths[-2], output))

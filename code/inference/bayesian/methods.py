@@ -1,3 +1,5 @@
+import torch
+
 import numpy as np
 
 from time import process_time
@@ -66,7 +68,9 @@ def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, swee
     # Compute calibration error
     predictive2 = Predictive(model, guide=guide, num_samples=num_samples)(x=X2, y=None)
     # Calibrate
-    cal_error, new_cal_error, new_quantiles = calibrate(predictive, predictive2, Y, Y2, quantiles, folder="svi", plot=plot)
+    cal_error, new_cal_error, new_quantiles = calibrate(predictive["obs"].cpu().numpy().squeeze(), 
+                                                        predictive2["obs"].cpu().numpy().squeeze(), 
+                                                        Y, Y2, quantiles, folder="svi", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
 
@@ -214,5 +218,112 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
     # Continuous ranked probability score
     crps = eval_crps(predictive['obs'], Y.squeeze())
     diagnostics["crps"] = crps
+
+    return predictive, diagnostics
+
+
+
+########################
+#       Dropout        #
+########################
+
+
+def train_DO(model, X, Y, lr, epochs):
+
+    model.train()
+
+    torch_optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+    mse_loss = torch.nn.MSELoss()
+
+    start_time = process_time()
+
+    with trange(epochs) as t:
+        for epoch in t:
+            torch_optimizer.zero_grad()
+            loss = mse_loss(model(X).squeeze(), Y)
+            loss.backward()
+            torch_optimizer.step()
+
+            # display progress bar
+            t.set_description(f"Epoch {epoch+1}")
+            t.set_postfix({"loss":float(loss / Y.shape[0])})
+
+    train_time = process_time() - start_time
+
+    diagnostics = {
+        "train_time": train_time,
+        "final_loss": float((loss / Y.shape[0]).detach().cpu())
+    }
+
+    return diagnostics
+
+
+def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagnostics, quantiles):
+
+    # Use validation set for hyperparameters tuning
+    if sweep:
+        X, Y = X_val, Y_val
+        X2, Y2 = X_test, Y_test
+    else:
+        X, Y = X_test, Y_test
+        X2, Y2 = X_val, Y_val
+
+    # Perform inference
+    start_time = process_time()
+    predictive = []
+    for n in range(num_samples):
+        predictive.append(model(X).detach().cpu().squeeze())
+    predictive = np.stack(predictive, axis=0)
+    inference_time = process_time() - start_time
+    diagnostics["inference_time"] = inference_time
+
+    # Compute calibration error
+    predictive2 = []
+    for n in range(num_samples):
+        predictive2.append(model(X2).detach().cpu().squeeze())
+    predictive2 = np.stack(predictive2, axis=0)
+
+    # Calibrate
+    cal_error, new_cal_error, new_quantiles = calibrate(predictive, predictive2, Y, Y2, quantiles, folder="dropout", plot=plot)
+    diagnostics["cal_error"] = cal_error
+    diagnostics["new_cal_error"] = new_cal_error
+
+    # Width at 0.95 quantile
+    q_low, q_hi = np.quantile(predictive, [quantiles[2], quantiles[-2]], axis=0) # 40-quantile
+    diagnostics["width"] = np.mean(q_hi - q_low)
+    # After calibration
+    new_q_low, new_q_hi = np.quantile(predictive, [new_quantiles[2], new_quantiles[-2]], axis=0) # 40-quantile
+    diagnostics["new_width"] = np.mean(new_q_hi - new_q_low)
+
+    # Check coverage with 95% quantiles
+    coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
+    diagnostics["coverage"] = coverage
+    diagnostics["avg_length"] = avg_length
+    # Re-compute after calibration
+    coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), new_q_low, new_q_hi)
+    diagnostics["new_coverage"] = coverage
+    diagnostics["new_avg_length"] = avg_length
+
+    # Mean Squared Error wrt the median
+    median = np.quantile(predictive, quantiles[int(len(quantiles)/2)], axis=0) # median
+    mse = np.mean((median-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
+    # After calibration
+    median = np.quantile(predictive, new_quantiles[int(len(new_quantiles)/2)], axis=0) # median
+    mse = np.mean((median-Y.cpu().numpy())**2)
+    diagnostics["new_mse"] = mse
+
+    # Empirical continuous ranked probability score
+    e_crps = eval_crps(torch.from_numpy(predictive).cpu(), Y.cpu().squeeze())
+    diagnostics["e_crps"] = e_crps
+    # Numerical continuous ranked probability score
+    tau = np.quantile(predictive, quantiles, axis=0)
+    n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())
+    diagnostics["crps"] = n_crps
+    # Compute CRPS after calibration
+    tau = np.quantile(predictive, new_quantiles, axis=0)
+    new_n_crps = num_eval_crps(new_quantiles, tau, Y.cpu().squeeze().numpy())
+    diagnostics["new_crps"] = new_n_crps
+
 
     return predictive, diagnostics
