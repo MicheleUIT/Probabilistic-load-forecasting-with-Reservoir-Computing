@@ -197,14 +197,14 @@ def plot_forecast(predictive, Y, name):
     pass
 
 
-def check_calibration(tau, Y, quantiles):
+def check_calibration(q, Y, quantiles):
     """
     It computes the calibration error according to formula (9)
     of paper https://arxiv.org/pdf/1807.00263.pdf
     """
 
     # Compute predicted CDF
-    predicted_cdf = np.mean(Y.cpu().numpy().squeeze() <= tau, axis=1)
+    predicted_cdf = np.mean(Y.cpu().numpy().squeeze() <= q, axis=1)
 
     # Compute calibration error
     w = 1
@@ -221,13 +221,13 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
     """
 
     # Check calibration on first dataset
-    tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
-    cal_error, unc_cdf = check_calibration(tau, Y, quantiles)
+    q = np.quantile(predictive, quantiles, axis=0)
+    cal_error, unc_cdf = check_calibration(q, Y, quantiles)
 
     # Calibrate on second dataset
     # Compute predicted CDF
-    tau2 = np.quantile(predictive2["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
-    predicted_cdf = np.mean(Y2.cpu().numpy().squeeze() <= tau2, axis=1)
+    q2 = np.quantile(predictive2, quantiles, axis=0)
+    predicted_cdf = np.mean(Y2.cpu().numpy().squeeze() <= q2, axis=1)
 
     # Fit calibrator
     isotonic = IsotonicRegression(out_of_bounds='clip')
@@ -235,7 +235,7 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
 
     # Check again calibration on first dataset
     new_quantiles = isotonic.transform(quantiles)
-    new_cal_error, cal_cdf = check_calibration(tau, Y, new_quantiles)
+    new_cal_error, cal_cdf = check_calibration(q, Y, new_quantiles)
 
     if plot:
         ax = plt.figure(figsize=(6, 6))
