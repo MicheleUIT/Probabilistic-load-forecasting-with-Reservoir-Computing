@@ -21,6 +21,7 @@
 - [Quantile Regression](https://pubs.aeaweb.org/doi/pdfplus/10.1257/jep.15.4.143), go to [[Quantile regression]]
 - [High-dimensional covariance matrix estimation using a low-rank and diagonal decomposition](https://arxiv.org/pdf/1802.06048.pdf), go to [[Uncertainty in Deep Learning#^a68cbd|Sparse covariance]]
 - [Reservoir computing approaches to recurrent neural network training](https://www.sciencedirect.com/science/article/pii/S1574013709000173), got to [[Echo State Networks|ESN]]
+- [Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning](https://proceedings.mlr.press/v48/gal16.pdf)
 - 
 
 
