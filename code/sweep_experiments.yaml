@@ -20,12 +20,17 @@ parameters:
     dim_reduction:
         value: False
     inference:
-        value: "q_regr"
+        value: "svi"
     num_iterations:
-        min: 30
-        max: 1000
+        value: 500
     lr:
         min: 0.0001
         max: 0.1
     seed:
         value: 10
+    sweep:
+        value: True
+    plot:
+        value: False
+    print_results:
+        value: False

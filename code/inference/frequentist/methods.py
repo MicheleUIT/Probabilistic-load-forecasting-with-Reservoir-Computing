@@ -4,6 +4,7 @@ import numpy as np
 from time import process_time
 from tqdm import trange
 from inference.frequentist.utils import compute_coverage_len, calibrate, eval_crps
+from inference.early_stopping import EarlyStopping
 
 
 
@@ -12,16 +13,19 @@ from inference.frequentist.utils import compute_coverage_len, calibrate, eval_cr
 ####################################
 
 
-def train_QR(model, X, Y, lr, epochs, quantiles):
-
-    model.train()
+def train_QR(model, X, Y, X_val, Y_val, lr, epochs, quantiles):
 
     torch_optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+
+    # initialize the early_stopping object
+    checkpoint_path = "./checkpoints/QR/"
+    early_stopping = EarlyStopping(patience=20, verbose=False, path=checkpoint_path)
 
     start_time = process_time()
 
     with trange(epochs) as t:
         for epoch in t:
+            model.train()
             torch_optimizer.zero_grad()
             loss = quantile_loss(quantiles, model(X), Y)
             loss.backward()
@@ -31,7 +35,22 @@ def train_QR(model, X, Y, lr, epochs, quantiles):
             t.set_description(f"Epoch {epoch+1}")
             t.set_postfix({"loss":float(loss / Y.shape[0])})
 
+            # Early stopping
+            model.eval()
+            valid_loss = quantile_loss(quantiles, model(X_val), Y_val).item()
+
+            # early_stopping needs the validation loss to check if it has decresed, 
+            # and if it has, it will make a checkpoint of the current model
+            early_stopping(valid_loss, model)
+            
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
+
     train_time = process_time() - start_time
+
+    # load the last checkpoint with the best model
+    model.load_state_dict(torch.load(checkpoint_path + "checkpoint.pt"))
 
     diagnostics = {
         "train_time": train_time,

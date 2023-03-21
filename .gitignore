@@ -10,3 +10,4 @@ dump/
 *.xlsx
 code/ESN/saved/
 *.txt
+checkpoints/

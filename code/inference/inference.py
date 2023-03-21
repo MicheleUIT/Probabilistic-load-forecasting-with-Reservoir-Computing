@@ -14,12 +14,12 @@ def inference(config, model, guide, X_train, Y_train, X_val, Y_val, X_test, Y_te
         return predictive, diagnostics
 
     elif config.inference == "q_regr":
-        diagnostics = train_QR(model, X_train, Y_train, config.lr, config.num_iterations, quantiles)
+        diagnostics = train_QR(model, X_train, Y_train, X_val, Y_val, config.lr, config.num_iterations, quantiles)
         predictive, diagnostics = pred_QR(model, X_val, Y_val, X_test, Y_test, config.plot, config.sweep, diagnostics, quantiles)
         return predictive, diagnostics
     
     elif config.inference == "dropout":
-        diagnostics = train_DO(model, X_train, Y_train, config.lr, config.num_iterations)
+        diagnostics = train_DO(model, X_train, Y_train, X_val, Y_val, config.lr, config.num_iterations)
         predictive, diagnostics = pred_DO(model, X_val, Y_val, X_test, Y_test, config.num_samples, config.plot, config.sweep, diagnostics, quantiles)
         return predictive, diagnostics
 

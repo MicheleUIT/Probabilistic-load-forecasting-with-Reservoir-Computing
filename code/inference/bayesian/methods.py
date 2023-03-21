@@ -11,6 +11,7 @@ from pyro.contrib.forecast.evaluate import eval_crps
 from tqdm import trange
 
 from inference.bayesian.utils import check_convergence, acceptance_rate, calibrate, compute_coverage_len, num_eval_crps
+from inference.early_stopping import EarlyStopping
 
 
 
@@ -228,17 +229,20 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
 ########################
 
 
-def train_DO(model, X, Y, lr, epochs):
-
-    model.train()
+def train_DO(model, X, Y, X_val, Y_val, lr, epochs):
 
     torch_optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
     mse_loss = torch.nn.MSELoss()
+
+    # initialize the early_stopping object
+    checkpoint_path = "./checkpoints/DO/"
+    early_stopping = EarlyStopping(patience=20, verbose=False, path=checkpoint_path)
 
     start_time = process_time()
 
     with trange(epochs) as t:
         for epoch in t:
+            model.train()
             torch_optimizer.zero_grad()
             loss = mse_loss(model(X).squeeze(), Y)
             loss.backward()
@@ -248,7 +252,22 @@ def train_DO(model, X, Y, lr, epochs):
             t.set_description(f"Epoch {epoch+1}")
             t.set_postfix({"loss":float(loss / Y.shape[0])})
 
+            # Early stopping
+            model.eval()
+            valid_loss = mse_loss(model(X_val), Y_val).item()
+
+            # early_stopping needs the validation loss to check if it has decresed, 
+            # and if it has, it will make a checkpoint of the current model
+            early_stopping(valid_loss, model)
+            
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
+
     train_time = process_time() - start_time
+
+    # load the last checkpoint with the best model
+    model.load_state_dict(torch.load(checkpoint_path + "checkpoint.pt"))
 
     diagnostics = {
         "train_time": train_time,
