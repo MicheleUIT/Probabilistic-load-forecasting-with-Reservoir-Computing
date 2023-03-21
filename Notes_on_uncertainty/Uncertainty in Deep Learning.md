@@ -1,4 +1,4 @@
-Link: [Uncertainty in Deep Learning](https://mlg.eng.cam.ac.uk/yarin/thesis/thesis.pdf)
+Link: [Uncertainty in Deep Learning](https://www.cs.ox.ac.uk/people/yarin.gal/website/thesis/thesis.pdf)
 Author: Yarin Gal
 Code: [GitHub code](https://github.com/yaringal)
 
