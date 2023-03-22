@@ -24,13 +24,13 @@ config = {
             "dropout_p": 0.2,
             "num_chains": 10,
             "num_samples": 1000,
-            "inference": "dropout",
-            "lr": 0.001,
+            "inference": "svi",
+            "lr": 0.01,
             "num_iterations": 500,
             "rank": None,
-            "plot": False,
+            "plot": True,
             "seed": 1,
-            "print_results": False,
+            "print_results": True,
             "sweep": False
             }
 
@@ -59,7 +59,7 @@ else:
     torch.save([Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding], file_path)
 
 
-# Quantiles for quantile regression
+# Quantiles
 quantiles = [0, 0.005]
 for n in range(39):
     quantiles.append(0.025*(n+1))

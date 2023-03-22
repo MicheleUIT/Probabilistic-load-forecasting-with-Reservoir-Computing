@@ -15,7 +15,7 @@ def run_esn(dataset, device, dim_reduction=True):
     # Set ESN hyperparams
     config = json.load(open('ESN/configs/ESN_hyperparams.json', 'r'))
 
-    Xtr, Ytr, Xval, Yval, Xte, Yte = generate_datasets(X, Y, test_percent = 0.15, val_percent = 0.15)
+    Xtr, Ytr, Xval, Yval, Xte, Yte = generate_datasets(X, Y, test_percent = 0.25, val_percent = 0.25)
     print("Tr: {:d}, Val: {:d}, Te: {:d}".format(Xtr.shape[0], Xval.shape[0], Xte.shape[0]))
 
     # Train and compute predictions
