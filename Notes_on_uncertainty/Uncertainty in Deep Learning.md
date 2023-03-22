@@ -95,7 +95,7 @@ We search for the distribution of weights that generated the data $p(\omega|X,Y)
 
 ## Custom variational distribution
 
-Il problema dello scrivere una guida custom è fare in modo che le variabili latenti siano correlate. Un approccio è quello usato dall'autoguide: usare gaussiane univariate e poi correlarle con la decomposizione di Cholesky (guarda [qui](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4066115)).
+Il problema dello scrivere una guida custom è fare in modo che le variabili latenti siano correlate. Un approccio è quello usato dall'autoguide: usare gaussiane univariate e poi correlarle con la decomposizione di Cholesky (guarda [qui](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4066115) e [qui](https://cs229.stanford.edu/section/gaussians.pdf)).
 Se io voglio usare distribuzioni diverse dalla gaussiana, come adattare questo approccio? Si possono mescolare distribuzioni diverse?
 Una possibilità è di usare le gaussiane inizialmente, ma poi quando si va a fare il sampling le si trasforma in distribuzioni diverse (guarda [qui](https://stats.stackexchange.com/a/415553), ma si può fare? Una volta che le correlo posso trasformarle? C'è un altro metodo per altre distribuzioni?)
 Ma mi serve davvero tutto questo controllo?
