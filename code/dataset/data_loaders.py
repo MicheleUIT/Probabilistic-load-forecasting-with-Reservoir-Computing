@@ -20,6 +20,9 @@ def load_acea():
     ACEA_data = mat['X'] # original resolution (1 = 10 mins)
     ACEA_data = ACEA_data[::6] # hourly forecast
 
+    # remove 11 weeks anomaly in the dataset
+    ACEA_data = np.concatenate((ACEA_data[:16000], ACEA_data[16000+168*11:]))
+
     X = ACEA_data[:-forecast_horizon]
     Y = ACEA_data[forecast_horizon:]
 
