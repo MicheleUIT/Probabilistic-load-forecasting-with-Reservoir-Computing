@@ -27,10 +27,11 @@ config = {
             "inference": "svi",
             "lr": 0.01,
             "num_iterations": 500,
+            "low_rank": False,
             "rank": None,
-            "plot": True,
+            "plot": False,
             "seed": 1,
-            "print_results": True,
+            "print_results": False,
             "sweep": False
             }
 
@@ -96,7 +97,7 @@ for s in range(config.seed):
     if device != 'cpu':
         torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-    if config.dim_reduction:
+    if not config.low_rank:
         guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
     else:
         guide = AutoLowRankMultivariateNormal(model, init_loc_fn=init_to_mean, rank=config.rank)

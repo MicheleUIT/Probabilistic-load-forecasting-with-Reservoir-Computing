@@ -19,6 +19,10 @@ parameters:
         value: [[0,1],[0,10]]
     dim_reduction:
         value: False
+    low_rank:
+        value: True
+    dropout_p:
+        value: 0
     inference:
         value: "svi"
     num_iterations:
