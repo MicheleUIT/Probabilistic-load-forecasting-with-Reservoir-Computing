@@ -260,6 +260,8 @@ def train_DO(model, X, Y, X_val, Y_val, lr, epochs):
             # and if it has, it will make a checkpoint of the current model
             early_stopping(valid_loss, model)
             
+            model.train()
+            
             if early_stopping.early_stop:
                 print("Early stopping")
                 break
