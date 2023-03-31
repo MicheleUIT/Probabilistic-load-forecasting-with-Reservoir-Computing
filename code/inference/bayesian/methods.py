@@ -173,7 +173,7 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
     return samples, diagnostics
 
 
-def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, inference_name):
+def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnostics, inference_name, quantiles):
 
     # Use validation set for hyperparameters tuning
     if sweep:
@@ -194,31 +194,52 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
     # Perform inference
     predictive = Predictive(model, samples)(x=X, y=None)
 
-    # Quantiles
-    target_interval = 0.95  # draw and compute the 95% confidence interval
-    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
-    diagnostics["width95"] = q_hi - q_low
-    
-    target_interval = 0.99  # draw and compute the 99% confidence interval
-    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
-    diagnostics["width99"] = q_hi - q_low
-
-    # Mean Squared Error
-    mean = np.mean(predictive["obs"].cpu().numpy().squeeze(), axis=0)
-    mse = np.mean((mean-Y.cpu().numpy())**2)
-    diagnostics["mse"] = mse
-
     # Compute calibration error
     predictive2 = Predictive(model, samples)(x=X2, y=None)
     # Calibrate
-    cal_error, new_cal_error = calibrate(predictive, predictive2, Y, Y2, folder="mcmc", plot=plot)
+    cal_error, new_cal_error, new_quantiles = calibrate(predictive["obs"].cpu().numpy().squeeze(), 
+                                                        predictive2["obs"].cpu().numpy().squeeze(), 
+                                                        Y, Y2, quantiles, folder="mcmc", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
 
-    # FIXME: use "discrete" CRPS and add CRPS after calibration
-    # Continuous ranked probability score
-    crps = eval_crps(predictive['obs'], Y.squeeze())
-    diagnostics["crps"] = crps
+    # Width at 0.95 quantile
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [quantiles[2], quantiles[-2]], axis=0) # 40-quantile
+    diagnostics["width"] = np.mean(q_hi - q_low)
+    # After calibration
+    new_q_low, new_q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [new_quantiles[2], new_quantiles[-2]], axis=0) # 40-quantile
+    diagnostics["new_width"] = np.mean(new_q_hi - new_q_low)
+
+    # Check coverage with 95% quantiles
+    coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
+    diagnostics["coverage"] = coverage
+    diagnostics["avg_length"] = avg_length
+    # Re-compute after calibration
+    coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), new_q_low, new_q_hi)
+    diagnostics["new_coverage"] = coverage
+    diagnostics["new_avg_length"] = avg_length
+
+    # Mean Squared Error wrt the median
+    median = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles[int(len(quantiles)/2)], axis=0) # median
+    mse = np.mean((median-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
+    # After calibration
+    median = np.quantile(predictive["obs"].cpu().numpy().squeeze(), new_quantiles[int(len(new_quantiles)/2)], axis=0) # median
+    mse = np.mean((median-Y.cpu().numpy())**2)
+    diagnostics["new_mse"] = mse
+
+    # Empirical continuous ranked probability score
+    e_crps = eval_crps(predictive['obs'], Y.squeeze())
+    diagnostics["e_crps"] = e_crps
+    # Numerical continuous ranked probability score
+    tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
+    n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())
+    diagnostics["crps"] = n_crps
+    # Compute CRPS after calibration
+    tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), new_quantiles, axis=0)
+    new_n_crps = num_eval_crps(new_quantiles, tau, Y.cpu().squeeze().numpy())
+    diagnostics["new_crps"] = new_n_crps
+
 
     return predictive, diagnostics
 
