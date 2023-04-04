@@ -9,7 +9,7 @@ def inference(config, model, guide, X_train, Y_train, X_val, Y_val, X_test, Y_te
         return predictive, diagnostics
 
     elif config.inference == "mcmc" or config.inference == "ssvs":
-        samples, diagnostics = train_MCMC(model, X_train, Y_train, config.num_chains, config.num_samples)
+        samples, diagnostics = train_MCMC(model, X_train, Y_train, config.num_chains, config.num_samples, config.sweep)
         predictive, diagnostics = pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, config.plot, config.sweep, diagnostics, config.inference, quantiles)
         return predictive, diagnostics
 

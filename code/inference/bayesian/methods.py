@@ -121,7 +121,7 @@ def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, swee
 #########################################
 
 
-def train_MCMC(model, X, Y, num_chains, num_samples):
+def train_MCMC(model, X, Y, num_chains, num_samples, sweep):
 
     # Define a hook to log the acceptance rate and step size at each iteration
     step_size = []
@@ -150,6 +150,8 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
         mcmc.run(X, Y)
         train_time.append(process_time() - start_time)
 
+        # temp_samples = {k: v.cpu() for k, v in mcmc.get_samples().items()}
+
         samples.append(mcmc.get_samples())
     
     step_size = np.asarray(step_size).reshape((num_chains,num_samples))
@@ -157,16 +159,18 @@ def train_MCMC(model, X, Y, num_chains, num_samples):
 
     # Compute autocorrelation for each chain and each parameter separately
     autocorrs = []
-    for chain in samples:
-        autocorr = {}
-        for k, v in chain.items():
-            autocorr[k] = autocorrelation(v)
+    # if not sweep:
+    #     for chain in samples:
+    #         autocorr = {}
+    #         for k, v in chain.items():
+    #             autocorr[k] = autocorrelation(v)
+    #         autocorrs.append(autocorr)
 
     # Save diagnostics in dict
     diagnostics = {
         "step_size": step_size,
         "acceptance_rate": acc_rate,
-        "train_time": np.asarray(train_time).mean(), # NOTE: should I change the definition of training time?
+        "train_time": np.asarray(train_time).mean(),
         "autocorrelation": autocorrs
     }
 
@@ -194,12 +198,26 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
     # Perform inference
     predictive = Predictive(model, samples)(x=X, y=None)
 
+    # Quantiles
+    target_interval = 0.95  # draw and compute the 95% confidence interval
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+    diagnostics["width95"] = q_hi - q_low
+    
+    target_interval = 0.99  # draw and compute the 99% confidence interval
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+    diagnostics["width99"] = q_hi - q_low
+
+    # Mean Squared Error
+    mean = np.mean(predictive["obs"].cpu().numpy().squeeze(), axis=0)
+    mse = np.mean((mean-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
+
     # Compute calibration error
     predictive2 = Predictive(model, samples)(x=X2, y=None)
     # Calibrate
     cal_error, new_cal_error, new_quantiles = calibrate(predictive["obs"].cpu().numpy().squeeze(), 
                                                         predictive2["obs"].cpu().numpy().squeeze(), 
-                                                        Y, Y2, quantiles, folder="mcmc", plot=plot)
+                                                        Y, Y2, quantiles, folder=inference_name, plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
 
@@ -239,7 +257,6 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
     tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), new_quantiles, axis=0)
     new_n_crps = num_eval_crps(new_quantiles, tau, Y.cpu().squeeze().numpy())
     diagnostics["new_crps"] = new_n_crps
-
 
     return predictive, diagnostics
 
