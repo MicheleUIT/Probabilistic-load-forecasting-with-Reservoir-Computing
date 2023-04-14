@@ -1,4 +1,4 @@
-program: experiments.py
+program: esn_sweep.py
 method: bayes
 project: "bayes_rc"
 metric:
