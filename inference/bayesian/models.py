@@ -195,7 +195,7 @@ class HorseshoeSSVS(PyroModule):
         gamma = pyro.sample("gamma", dist.Normal(0, sig)).to(self.device)
 
         sigma = pyro.sample("sigma", dist.Uniform(0., 10.)).to(self.device)
-        mean = (self.linear1(x)*gamma + self.linear2(x)*gamma).squeeze(-1) # FIXME: shouldn't be a 1-gamma?
+        mean = (self.linear1(x)*gamma + self.linear2(x)*(1-gamma)).squeeze(-1)
 
         with pyro.plate("data", x.shape[0], device=self.device):
             obs = pyro.sample("obs", dist.Normal(mean, sigma), obs=y)

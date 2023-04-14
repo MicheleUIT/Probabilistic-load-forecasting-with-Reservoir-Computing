@@ -100,9 +100,9 @@ def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, swee
     mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["new_mse"] = mse
 
-    # Empirical continuous ranked probability score
-    e_crps = eval_crps(predictive['obs'], Y.squeeze())
-    diagnostics["e_crps"] = e_crps
+    # # Empirical continuous ranked probability score
+    # e_crps = eval_crps(predictive['obs'], Y.squeeze())
+    # diagnostics["e_crps"] = e_crps
     # Numerical continuous ranked probability score
     tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
     n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())
@@ -246,9 +246,9 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
     mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["new_mse"] = mse
 
-    # Empirical continuous ranked probability score
-    e_crps = eval_crps(predictive['obs'], Y.squeeze())
-    diagnostics["e_crps"] = e_crps
+    # # Empirical continuous ranked probability score
+    # e_crps = eval_crps(predictive['obs'], Y.squeeze())
+    # diagnostics["e_crps"] = e_crps
     # Numerical continuous ranked probability score
     tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
     n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())
@@ -372,9 +372,9 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
     mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["new_mse"] = mse
 
-    # Empirical continuous ranked probability score
-    e_crps = eval_crps(torch.from_numpy(predictive).cpu(), Y.cpu().squeeze())
-    diagnostics["e_crps"] = e_crps
+    # # Empirical continuous ranked probability score
+    # e_crps = eval_crps(torch.from_numpy(predictive).cpu(), Y.cpu().squeeze())
+    # diagnostics["e_crps"] = e_crps
     # Numerical continuous ranked probability score
     tau = np.quantile(predictive, quantiles, axis=0)
     n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())

@@ -24,7 +24,7 @@ config = {
             "dropout_p": 0.2,
             "num_chains": 10,
             "num_samples": 8000,
-            "inference": "svi",
+            "inference": "ssvs",
             "lr": 0.01,
             "num_iterations": 500,
             "low_rank": False,
@@ -133,10 +133,10 @@ for s in range(config.seed):
     else:
         inf_times.append(0)
 
-    if "e_crps" in diagnostics.keys(): # quantile regression doesn't have an empirical CRPS
-        e_crpss.append(diagnostics['e_crps'])
-    else:
-        e_crpss.append(0)
+    # if "e_crps" in diagnostics.keys(): # quantile regression doesn't have an empirical CRPS
+    #     e_crpss.append(diagnostics['e_crps'])
+    # else:
+    #     e_crpss.append(0)
 
 
 
@@ -152,8 +152,8 @@ m_width = np.asarray(widths).mean()
 s_width = np.asarray(widths).std()
 m_new_width = np.asarray(new_widths).mean()
 s_new_width = np.asarray(new_widths).std()
-m_e_crps = np.asarray(e_crpss).mean()
-s_e_crps = np.asarray(e_crpss).std()
+# m_e_crps = np.asarray(e_crpss).mean()
+# s_e_crps = np.asarray(e_crpss).std()
 m_crps = np.asarray(crpss).mean()
 s_crps = np.asarray(crpss).std()
 m_new_crps = np.asarray(new_crpss).mean()
@@ -176,8 +176,8 @@ wandb.log({"m_train_time": m_time,
            "s_cal_error": s_cal,
            "m_new_cal_error": m_new_cal,
            "s_new_cal_error": s_new_cal,
-           "m_e_crps": m_e_crps,
-           "s_e_crps": s_e_crps,
+        #    "m_e_crps": m_e_crps,
+        #    "s_e_crps": s_e_crps,
            "m_crps": m_crps,
            "s_crps": s_crps,
            "m_new_crps": m_new_crps,
@@ -204,7 +204,7 @@ if config.print_results:
                        "coverage": coverages, "new_coverage": new_coverages,
                        "width": widths, "new_width": new_widths,
                        "MSE": mses, "new_MSE": new_mses,
-                       "e_CRPS": e_crpss,
+                    #    "e_CRPS": e_crpss,
                        "CRPS": crpss, "new_CRPS": new_crpss,
                        "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
