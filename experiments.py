@@ -23,7 +23,7 @@ config = {
             "dim_reduction": False,
             "dropout_p": 0.2,
             "num_chains": 10,
-            "num_samples": 1000,
+            "num_samples": 8000,
             "inference": "svi",
             "lr": 0.01,
             "num_iterations": 500,
@@ -32,7 +32,7 @@ config = {
             "plot": False,
             "seed": 1,
             "print_results": False,
-            "sweep": False
+            "sweep": True
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
@@ -81,7 +81,10 @@ for s in range(config.seed):
     # Set seed for reproducibility
     pyro.set_rng_seed(s)
 
+    pyro.clear_param_store()
+
     torch_model = TorchModel(config.model_widths, config.activation).to(device)
+    guide = None
     if config.inference == "ssvs":
         model = HorseshoeSSVS(train_embedding.shape[1], 1, type='m', device=device)
     elif config.inference == "q_regr":
@@ -91,16 +94,14 @@ for s in range(config.seed):
     else:
         model = BayesianModel(torch_model, config, device)
 
-    pyro.clear_param_store()
+        # To enforce all the parameters in the guide on the GPU, since we use an autoguide
+        if device != 'cpu':
+            torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-    # To enforce all the parameters in the guide on the GPU, since we use an autoguide
-    if device != 'cpu':
-        torch.set_default_tensor_type('torch.cuda.FloatTensor')
-
-    if not config.low_rank:
-        guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
-    else:
-        guide = AutoLowRankMultivariateNormal(model, init_loc_fn=init_to_mean, rank=config.rank)
+        if not config.low_rank:
+            guide = AutoMultivariateNormal(model, init_loc_fn=init_to_mean)
+        else:
+            guide = AutoLowRankMultivariateNormal(model, init_loc_fn=init_to_mean, rank=config.rank)
 
     # Perform inference
     predictive, diagnostics = inference(config, model, guide, 
@@ -169,32 +170,32 @@ m_loss = np.asarray(losses).mean()
 s_loss = np.asarray(losses).std()
 
 
-wandb.log({"m_train_time": m_time})
-wandb.log({"s_train_time": s_time})
-wandb.log({"m_cal_error": m_cal})
-wandb.log({"s_cal_error": s_cal})
-wandb.log({"m_new_cal_error": m_new_cal})
-wandb.log({"s_new_cal_error": s_new_cal})
-wandb.log({"m_e_crps": m_e_crps})
-wandb.log({"s_e_crps": s_e_crps})
-wandb.log({"m_crps": m_crps})
-wandb.log({"s_crps": s_crps})
-wandb.log({"m_new_crps": m_new_crps})
-wandb.log({"s_new_crps": s_new_crps})
-wandb.log({"m_mse": m_mse})
-wandb.log({"s_mse": s_mse})
-wandb.log({"m_new_mse": m_new_mse})
-wandb.log({"s_new_mse": s_new_mse})
-wandb.log({"m_width": m_width})
-wandb.log({"s_width": s_width})
-wandb.log({"m_new_width": m_new_width})
-wandb.log({"s_new_width": s_new_width})
-wandb.log({"m_cov": m_cov})
-wandb.log({"s_cov": s_cov})
-wandb.log({"m_new_cov": m_new_cov})
-wandb.log({"s_new_cov": s_new_cov})
-wandb.log({"m_final_loss": m_loss})
-wandb.log({"m_final_loss": s_loss})
+wandb.log({"m_train_time": m_time,
+           "s_train_time": s_time,
+           "m_cal_error": m_cal,
+           "s_cal_error": s_cal,
+           "m_new_cal_error": m_new_cal,
+           "s_new_cal_error": s_new_cal,
+           "m_e_crps": m_e_crps,
+           "s_e_crps": s_e_crps,
+           "m_crps": m_crps,
+           "s_crps": s_crps,
+           "m_new_crps": m_new_crps,
+           "s_new_crps": s_new_crps,
+           "m_mse": m_mse,
+           "s_mse": s_mse,
+           "m_new_mse": m_new_mse,
+           "s_new_mse": s_new_mse,
+           "m_width": m_width,
+           "s_width": s_width,
+           "m_new_width": m_new_width,
+           "s_new_width": s_new_width,
+           "m_cov": m_cov,
+           "s_cov": s_cov,
+           "m_new_cov": m_new_cov,
+           "s_new_cov": s_new_cov,
+           "m_final_loss": m_loss,
+           "m_final_loss": s_loss})
 
 
 if config.print_results:
