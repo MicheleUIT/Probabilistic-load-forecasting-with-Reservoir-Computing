@@ -24,7 +24,7 @@ config = {
             "dropout_p": 0.2,
             "num_chains": 10,
             "num_samples": 8000,
-            "inference": "ssvs",
+            "inference": "svi",
             "lr": 0.01,
             "num_iterations": 500,
             "low_rank": False,
@@ -32,7 +32,7 @@ config = {
             "plot": False,
             "seed": 1,
             "print_results": False,
-            "sweep": False
+            "sweep": True
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
@@ -56,7 +56,7 @@ file_path = save_path + f'esn_states_{n_internal_units}units.pt'
 if os.path.isfile(file_path):
     Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
 else:
-    Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding, _, _ = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
+    Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
     torch.save([Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding], file_path)
 
 
