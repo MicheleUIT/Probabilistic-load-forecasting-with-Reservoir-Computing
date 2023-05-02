@@ -32,7 +32,7 @@ config = {
             "plot": False,
             "seed": 1,
             "print_results": False,
-            "sweep": True
+            "sweep": False
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
