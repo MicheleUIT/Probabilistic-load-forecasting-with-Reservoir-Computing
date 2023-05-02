@@ -10,12 +10,12 @@ def run_esn(dataset, device, dim_reduction=True):
     Run ESN and returns either the reservoir states, or the embeddings produce by dimensionality reduction
     """
 
-    X, Y = load_dataset(dataset)
+    data, L, F = load_dataset(dataset)
 
     # Set ESN hyperparams
     config = json.load(open('ESN/configs/ESN_hyperparams.json', 'r'))
 
-    Xtr, Ytr, Xval, Yval, Xte, Yte, diffXte, diffYte = generate_datasets(X, Y, test_percent = 0.25, val_percent = 0.25)
+    Xtr, Ytr, Xval, Yval, Xte, Yte, diffXte, diffYte = generate_datasets(data, L, F, test_percent = 0.25, val_percent = 0.25)
     print("Tr: {:d}, Val: {:d}, Te: {:d}".format(Xtr.shape[0], Xval.shape[0], Xte.shape[0]))
 
     # Train and compute predictions

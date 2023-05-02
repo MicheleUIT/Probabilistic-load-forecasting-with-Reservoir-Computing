@@ -15,7 +15,8 @@ def load_dataset(name):
 
 
 def load_acea():
-    seasonality = 24 # 1 day
+    seasonality = 24*7 # 1 week
+    forecast_horizon = 24 # 1 day
 
     mat = loadmat('dataset/TS_Acea.mat')  # load mat-file
     ACEA_data = mat['X'] # original resolution (1 = 10 mins)
@@ -24,7 +25,7 @@ def load_acea():
     # remove 11 weeks anomaly in the dataset
     ACEA_data = np.concatenate((ACEA_data[:16000], ACEA_data[16000+168*11:]))
 
-    return ACEA_data.squeeze(), seasonality
+    return ACEA_data.squeeze(), seasonality, forecast_horizon
 
 
 def load_spain():
@@ -38,14 +39,18 @@ def load_spain():
     data = data[spain_power_data[...,2] == 'Demanda real'] # select energy demand values
     data = data.astype(float) # convert into floats
 
-    seasonality = 7
+    seasonality = 7 # 1 week
+    forecast_horizon = 1 # 1 week
 
-    return data, seasonality
+    return data, seasonality, forecast_horizon
 
 
-def generate_datasets(data, seasonality, test_percent = 0.15, val_percent = 0.15, scaler = StandardScaler):
+def generate_datasets(data, seasonality, forecast_horizon, test_percent = 0.15, val_percent = 0.15, scaler = StandardScaler):
 
     L = seasonality
+    F = forecast_horizon
+
+    assert F<=L, "The forecast horizon must be smaller or equal to the seasonality."
 
     s = pd.Series(data)
     
@@ -55,10 +60,10 @@ def generate_datasets(data, seasonality, test_percent = 0.15, val_percent = 0.15
 
     diff = (data[L:] - sn)
 
-    X = sn[:-L, np.newaxis]
-    Y = sn[L:, np.newaxis]
-    diffX = diff[:-L, np.newaxis]
-    diffY = diff[L:, np.newaxis]
+    X = sn[:-F, np.newaxis]
+    Y = sn[F:, np.newaxis]
+    diffX = diff[:-F, np.newaxis]
+    diffY = diff[F:, np.newaxis]
 
     n_data,_ = X.shape
 

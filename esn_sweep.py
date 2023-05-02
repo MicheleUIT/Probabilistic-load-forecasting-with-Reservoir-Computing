@@ -102,5 +102,10 @@ for s in range(10):
 
 mse = np.asarray(mse)
 
+# check hypothesis about the whitening power of RC
+cov = np.cov(test_states.T)
+white = np.mean((cov-np.eye(cov.shape[0]))**2)
+
 wandb.log({"m_mse": mse.mean(),
-           "s_mse": mse.std()})
+           "s_mse": mse.std(),
+           "white": white})
