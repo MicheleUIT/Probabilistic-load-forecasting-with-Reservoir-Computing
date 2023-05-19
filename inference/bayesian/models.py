@@ -190,6 +190,8 @@ class BernoulliSSVS(PyroModule):
         self.linear1 = BL(in_features, out_features, self.device)
         self.linear2 = BL(in_features, out_features, self.device, 0.001)
 
+        # FIXME: add activation function
+
     def forward(self, x, y=None):
         gamma = pyro.sample("gamma", dist.RelaxedBernoulli(0)).to(self.device) # FIXME: fix the relaxed Bernoulli
 
@@ -205,10 +207,17 @@ class HorseshoeSSVS(PyroModule):
     """
     SSVS implemented with an horseshoe continuous RV
     """
-    def __init__(self, device):
+    def __init__(self, activation, device):
         super().__init__()
 
         self.device = device
+
+        if activation == "tanh":
+            self.a = torch.nn.Tanh()
+        elif activation == "relu":
+            self.a = torch.nn.ReLU()
+        else:
+            raise ValueError(f"{activation} not defined.")
 
     def forward(self, x, y=None):
         tau = pyro.sample("tau", dist.HalfCauchy(1.)).to(self.device)
@@ -216,7 +225,7 @@ class HorseshoeSSVS(PyroModule):
         sig = (lamb*tau)**2
         gamma = pyro.sample("gamma", dist.Normal(0, sig)).to(self.device)
 
-        mean = x @ gamma
+        mean = self.a(x @ gamma)
         sigma = pyro.sample("sigma", dist.Uniform(0., 10.)).to(self.device)
 
         with pyro.plate("data", x.shape[0], device=self.device):
