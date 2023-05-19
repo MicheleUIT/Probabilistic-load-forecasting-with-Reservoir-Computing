@@ -25,7 +25,9 @@ class TorchModel(torch.nn.Module):
             raise ValueError(f"{activation} not defined.")
         
         dp = torch.nn.Dropout(p)
-
+        
+        if dropout:
+            self.layers.append(dp)
         for i in range(len(widths)-2):
             self.layers.append(torch.nn.Linear(widths[i], widths[i+1]))
             self.layers.append(a)
@@ -171,9 +173,9 @@ class BayesianLinear_t(PyroModule):
         return self.linear(x)
 
 
-class HorseshoeSSVS(PyroModule):
+class BernoulliSSVS(PyroModule):
     """
-    SSVS implemented with an horseshoe continuous RV
+    SSVS implemented with a relaxed Bernoulli
 
     :param type: string to choose linear layer type
     """
@@ -189,10 +191,7 @@ class HorseshoeSSVS(PyroModule):
         self.linear2 = BL(in_features, out_features, self.device, 0.001)
 
     def forward(self, x, y=None):
-        tau = pyro.sample("tau", dist.HalfCauchy(1.)).to(self.device)
-        lamb = pyro.sample("lamb", dist.HalfCauchy(1.)).to(self.device)
-        sig = lamb*tau
-        gamma = pyro.sample("gamma", dist.Normal(0, sig)).to(self.device)
+        gamma = pyro.sample("gamma", dist.RelaxedBernoulli(0)).to(self.device) # FIXME: fix the relaxed Bernoulli
 
         sigma = pyro.sample("sigma", dist.Uniform(0., 10.)).to(self.device)
         mean = (self.linear1(x)*gamma + self.linear2(x)*(1-gamma)).squeeze(-1)
@@ -200,10 +199,34 @@ class HorseshoeSSVS(PyroModule):
         with pyro.plate("data", x.shape[0], device=self.device):
             obs = pyro.sample("obs", dist.Normal(mean, sigma), obs=y)
         return mean
-    
+
+
+class HorseshoeSSVS(PyroModule):
+    """
+    SSVS implemented with an horseshoe continuous RV
+    """
+    def __init__(self, device):
+        super().__init__()
+
+        self.device = device
+
+    def forward(self, x, y=None):
+        tau = pyro.sample("tau", dist.HalfCauchy(1.)).to(self.device)
+        lamb = pyro.sample("lamb", dist.HalfCauchy(1.)).expand(x.shape[1]).to(self.device)
+        sig = (lamb*tau)**2
+        gamma = pyro.sample("gamma", dist.Normal(0, sig)).to(self.device)
+
+        mean = x @ gamma
+        sigma = pyro.sample("sigma", dist.Uniform(0., 10.)).to(self.device)
+
+        with pyro.plate("data", x.shape[0], device=self.device):
+            obs = pyro.sample("obs", dist.Normal(mean, sigma), obs=y)
+
+        return mean
+
+
 
 ### TODO: Define a full custom guide
-
 
 # # should I define a full custom guide?
 # # when defining the guide, put constraints on variances
