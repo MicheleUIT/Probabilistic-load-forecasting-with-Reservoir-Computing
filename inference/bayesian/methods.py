@@ -384,5 +384,6 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
     new_n_crps = num_eval_crps(new_quantiles, tau, Y.cpu().squeeze().numpy())
     diagnostics["new_crps"] = new_n_crps
 
+    predictive_dict = {"obs": torch.from_numpy(predictive)}
 
-    return predictive, diagnostics
+    return predictive_dict, diagnostics
