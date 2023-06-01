@@ -174,15 +174,16 @@ def compute_coverage_len(y_test, y_lower, y_upper):
     return coverage, avg_length
 
 
-def plot_forecast(predictive, Y, diffXte, diffYte, name, length=200):
-    # draw and compute the 95% confidence interval
-    target_interval = 0.95
-    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [(1-target_interval)/2, 1-(1-target_interval)/2], axis=0) # 40-quantile
+def plot_forecast(predictive, Y, diffXte, diffYte, CI, name, length=200):
+
+    # draw and compute the confidence interval CI
+    target_interval = CI[1] - CI[0]
+    q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), CI, axis=0) # 40-quantile
     mean = np.mean(predictive["obs"].cpu().numpy().squeeze(), axis=0)
 
     fig = plt.figure(figsize=(15,5))
     plt.plot((Y.cpu()+diffYte)[:length], label='true value', color='k')
-    plt.fill_between(np.arange(predictive["obs"].shape[1])[:length], (q_low+diffYte)[:length], (q_hi+diffYte)[:length], alpha=0.3, label=str(target_interval)+' PI')
+    plt.fill_between(np.arange(predictive["obs"].shape[1])[:length], (q_low+diffYte)[:length], (q_hi+diffYte)[:length], alpha=0.3, label='0.95 PI')
     plt.plot((mean+diffYte)[:length], label='prediction')
     plt.legend(loc='best', fontsize=10)
     plt.grid()
@@ -231,18 +232,19 @@ def calibrate(predictive, predictive2, Y, Y2, quantiles, folder, plot=False):
 
     # Fit calibrator
     isotonic = IsotonicRegression(out_of_bounds='clip')
-    isotonic.fit(quantiles, predicted_cdf)
+    isotonic.fit(predicted_cdf, quantiles)
 
     # Check again calibration on first dataset
     new_quantiles = isotonic.transform(quantiles)
-    new_cal_error, cal_cdf = check_calibration(q, Y, new_quantiles)
+    new_q = np.quantile(predictive, new_quantiles, axis=0)
+    new_cal_error, cal_cdf = check_calibration(new_q, Y, quantiles)
 
     if plot:
         ax = plt.figure(figsize=(6, 6))
         ax = plt.gca()
         # ax.plot(new_quantiles, predicted_cdf, '-s', color='green', label='Cal data')
         ax.plot(quantiles, unc_cdf, '-x', color='purple', label='Uncalibrated')
-        ax.plot(new_quantiles, cal_cdf, '-+', color='red', label='Calibrated')
+        ax.plot(quantiles, cal_cdf, '-+', color='red', label='Calibrated')
         ax.plot([0,1],[0,1],'--', color='grey', label='Perfect calibration')
         ax.set_xlabel('Predicted', fontsize=17)
         ax.set_ylabel('Empirical', fontsize=17)

@@ -346,6 +346,8 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
     cal_error, new_cal_error, new_quantiles = calibrate(predictive, predictive2, Y, Y2, quantiles, folder="dropout", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
+    diagnostics["quantiles"] = quantiles
+    diagnostics["new_quantiles"] = new_quantiles
 
     # Width at 0.95 quantile
     q_low, q_hi = np.quantile(predictive, [quantiles[2], quantiles[-2]], axis=0) # 40-quantile
@@ -353,6 +355,13 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
     # After calibration
     new_q_low, new_q_hi = np.quantile(predictive, [new_quantiles[2], new_quantiles[-2]], axis=0) # 40-quantile
     diagnostics["new_width"] = np.mean(new_q_hi - new_q_low)
+
+    # Width at 0.70 quantile
+    q_low70, q_hi70 = np.quantile(predictive, [quantiles[7], quantiles[-7]], axis=0) # 40-quantile
+    diagnostics["width70"] = np.mean(q_hi70 - q_low70)
+    # After calibration
+    new_q_low70, new_q_hi70 = np.quantile(predictive, [new_quantiles[7], new_quantiles[-7]], axis=0) # 40-quantile
+    diagnostics["new_width70"] = np.mean(new_q_hi70 - new_q_low70)
 
     # Check coverage with 95% quantiles
     coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
@@ -362,6 +371,15 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
     coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), new_q_low, new_q_hi)
     diagnostics["new_coverage"] = coverage
     diagnostics["new_avg_length"] = avg_length
+
+    # Check coverage with 70% quantiles
+    coverage70, avg_length70 = compute_coverage_len(Y.cpu().numpy(), q_low70, q_hi70)
+    diagnostics["coverage70"] = coverage70
+    diagnostics["avg_length70"] = avg_length70
+    # Re-compute after calibration
+    coverage70, avg_length70 = compute_coverage_len(Y.cpu().numpy(), new_q_low70, new_q_hi70)
+    diagnostics["new_coverage70"] = coverage70
+    diagnostics["new_avg_length70"] = avg_length70
 
     # Mean Squared Error wrt the median
     median = np.quantile(predictive, quantiles[int(len(quantiles)/2)], axis=0) # median
