@@ -74,6 +74,8 @@ def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, swee
                                                         Y, Y2, quantiles, folder="svi", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
+    diagnostics["quantiles"] = quantiles
+    diagnostics["new_quantiles"] = new_quantiles
 
     # Width at 0.95 quantile
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [quantiles[2], quantiles[-2]], axis=0) # 40-quantile
@@ -220,6 +222,8 @@ def pred_MCMC(model, samples, X_val, Y_val, X_test, Y_test, plot, sweep, diagnos
                                                         Y, Y2, quantiles, folder=inference_name, plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
+    diagnostics["quantiles"] = quantiles
+    diagnostics["new_quantiles"] = new_quantiles
 
     # Width at 0.95 quantile
     q_low, q_hi = np.quantile(predictive["obs"].cpu().numpy().squeeze(), [quantiles[2], quantiles[-2]], axis=0) # 40-quantile
