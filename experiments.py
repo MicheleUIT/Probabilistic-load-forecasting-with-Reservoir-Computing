@@ -22,7 +22,7 @@ config = {
             "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
             "dropout_p": 0.2,
-            "num_chains": 10,
+            "num_chains": 2,
             "num_samples": 8000,
             "inference": "ssvs",
             "lr": 0.01,
@@ -30,9 +30,9 @@ config = {
             "low_rank": False,
             "rank": None,
             "plot": False,
-            "seed": 1,
+            "seed": 5,
             "print_results": False,
-            "sweep": False
+            "sweep": True
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
@@ -76,6 +76,7 @@ losses = []
 widths, new_widths = [], []
 mses, new_mses = [], []
 coverages, new_coverages = [], []
+grs, effs = [], []
 
 for s in range(config.seed):
     # Set seed for reproducibility
@@ -86,7 +87,7 @@ for s in range(config.seed):
     torch_model = TorchModel(config.model_widths, config.activation).to(device)
     guide = None
     if config.inference == "ssvs":
-        model = HorseshoeSSVS(train_embedding.shape[1], 1, type='m', device=device)
+        model = HorseshoeSSVS(config.activation, device=device)
     elif config.inference == "q_regr":
         model = TorchModel(config.model_widths, config.activation, quantiles=quantiles).to(device)
     elif config.inference == "dropout":
@@ -133,10 +134,15 @@ for s in range(config.seed):
     else:
         inf_times.append(0)
 
-    # if "e_crps" in diagnostics.keys(): # quantile regression doesn't have an empirical CRPS
-    #     e_crpss.append(diagnostics['e_crps'])
-    # else:
-    #     e_crpss.append(0)
+    if "gelman_rubin" in diagnostics.keys(): # only MCMC methods have the gelman rubin factor
+        grs.append(diagnostics['gelman_rubin'])
+    else:
+        grs.append(0)
+
+    if "effective_sample_size" in diagnostics.keys(): # only MCMC methods have the gelman rubin factor
+        effs.append(diagnostics['effective_sample_size'])
+    else:
+        effs.append(0)
 
 
 
@@ -195,7 +201,9 @@ wandb.log({"m_train_time": m_time,
            "m_new_cov": m_new_cov,
            "s_new_cov": s_new_cov,
            "m_final_loss": m_loss,
-           "m_final_loss": s_loss})
+           "s_final_loss": s_loss,
+           "gel_rub": grs,
+           "eff_size": effs})
 
 
 if config.print_results:
