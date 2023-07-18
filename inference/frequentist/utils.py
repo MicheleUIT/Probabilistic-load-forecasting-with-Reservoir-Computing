@@ -1,8 +1,15 @@
+import matplotlib
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 from pathlib import Path
 from sklearn.isotonic import IsotonicRegression
+
+
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'STIXGeneral'
+matplotlib.rcParams['font.size'] = 18
 
 
 
@@ -25,7 +32,7 @@ def plot_forecast(predictive, Y, diffXte, diffYte, length=200):
     plt.plot((Y.cpu()+diffYte)[:length], label='true value', color='k')
     plt.fill_between(np.arange(mean.shape[0])[:length], (q_low+diffYte)[:length], (q_hi+diffYte)[:length], alpha=0.3, label='0.95 PI')
     plt.plot((mean+diffYte)[:length], label='prediction')
-    plt.legend(loc='best', fontsize=10)
+    plt.legend(loc='best')
     plt.grid()
 
     # Show and save plot

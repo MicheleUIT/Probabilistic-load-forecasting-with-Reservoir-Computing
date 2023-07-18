@@ -1,4 +1,5 @@
 import torch
+import matplotlib
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +8,10 @@ from pathlib import Path
 from pyro.ops.stats import gelman_rubin, effective_sample_size
 from sklearn.isotonic import IsotonicRegression
 
+
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'STIXGeneral'
+matplotlib.rcParams['font.size'] = 18
 
 
 def acceptance_rate(mean_accept_prob):
@@ -185,7 +190,7 @@ def plot_forecast(predictive, Y, diffXte, diffYte, CI, name, length=200):
     plt.plot((Y.cpu()+diffYte)[:length], label='true value', color='k')
     plt.fill_between(np.arange(predictive["obs"].shape[1])[:length], (q_low+diffYte)[:length], (q_hi+diffYte)[:length], alpha=0.3, label='0.95 PI')
     plt.plot((mean+diffYte)[:length], label='prediction')
-    plt.legend(loc='best', fontsize=10)
+    plt.legend(loc='best')
     plt.grid()
 
     # Show and save plot

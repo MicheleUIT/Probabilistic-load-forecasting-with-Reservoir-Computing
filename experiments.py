@@ -17,22 +17,22 @@ from ESN.utils import run_esn
 config = {
             "dataset": "acea",
             "model_widths": [512,1],
-            "activation": "tanh",
+            "activation": "relu",
             "distributions": ["gauss", "unif", "gauss"],
-            "parameters": [[0,1],[0,10]],
+            "parameters": [[0,1],[0,1]],
             "dim_reduction": False,
             "dropout_p": 0.2,
             "num_chains": 10,
             "num_samples": 8000,
-            "inference": "ssvs",
-            "lr": 0.01,
-            "num_iterations": 500,
-            "low_rank": False,
+            "inference": "svi",
+            "lr": 0.0013272983824139898,
+            "num_iterations": 2000,
+            "low_rank": True,
             "rank": None,
-            "plot": False,
-            "seed": 1,
-            "print_results": False,
-            "sweep": False
+            "plot": True,
+            "seed": 10,
+            "print_results": True,
+            "sweep": True
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
