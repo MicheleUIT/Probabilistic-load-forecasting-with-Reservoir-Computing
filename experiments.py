@@ -29,15 +29,9 @@ config = {
             "num_iterations": 2000,
             "low_rank": True,
             "rank": None,
-<<<<<<< HEAD
-            "plot": False,
-            "seed": 5,
-            "print_results": False,
-=======
             "plot": True,
             "seed": 10,
             "print_results": True,
->>>>>>> ed101ac0e675b34ce8eee9580c5b5f1c49742040
             "sweep": True
             }
 
