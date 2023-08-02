@@ -24,9 +24,9 @@ def compute_coverage_len(y_test, y_lower, y_upper):
     return coverage, avg_length
 
 
-def plot_forecast(predictive, Y, diffXte, diffYte, length=200):
+def plot_forecast(predictive, Y, diffXte, diffYte, name, n=2, length=200):
     mean_index = int(predictive.shape[1]/2)
-    q_low, mean, q_hi = predictive[:,2].cpu().numpy(), predictive[:,mean_index].cpu().numpy(), predictive[:,-2].cpu().numpy()
+    q_low, mean, q_hi = predictive[:,n].cpu().numpy(), predictive[:,mean_index].cpu().numpy(), predictive[:,-n].cpu().numpy()
 
     fig = plt.figure(figsize=(15,5))
     plt.plot((Y.cpu()+diffYte)[:length], label='true value', color='k')
@@ -36,7 +36,6 @@ def plot_forecast(predictive, Y, diffXte, diffYte, length=200):
     plt.grid()
 
     # Show and save plot
-    name = "qr"
     save_path = f'./results/plots/'
     Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
     plt.savefig(f'{save_path}{name}.png')

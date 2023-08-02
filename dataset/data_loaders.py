@@ -3,6 +3,7 @@ import pandas as pd
 
 from scipy.io import loadmat
 from sklearn.preprocessing import StandardScaler
+from torch import from_numpy
 
 
 def load_dataset(name):
@@ -109,3 +110,29 @@ def generate_datasets(data, seasonality, forecast_horizon, test_percent = 0.15, 
     Xte = np.concatenate((Xte,np.ones((Xte.shape[0],1))),axis=1)
 
     return Xtr, Ytr, Xval, Yval, Xte, Yte, diffXte, diffYte
+
+
+def dataset_for_benchmark(name, device):
+    """
+    Load dataset to use with ARIMA and DeepAR
+    """
+
+    data, L, F = load_dataset(name)
+    Xtr, Ytr, Xval, Yval, Xte, Yte, diffXte, diffYte = generate_datasets(data, L, F, test_percent = 0.25, val_percent = 0.25)
+
+    Xtr, Ytr = to_torch(Xtr, device)[:,0], to_torch(Ytr, device).squeeze()
+    Xval, Yval = to_torch(Xval, device)[:,0], to_torch(Yval, device).squeeze()
+    Xte, Yte = to_torch(Xte, device)[:,0], to_torch(Yte, device).squeeze()
+    diffXte, diffYte = diffXte.squeeze(), diffYte.squeeze()
+
+    return Xtr, Ytr, Xval, Yval, Xte, Yte, diffXte, diffYte, F
+
+
+def to_torch(array, device):
+    """
+    Transform numpy arrays to torch tensors and move them to `device`
+    """
+    
+    dtype = 'float32'
+    array = array.astype(dtype)
+    return from_numpy(array).to(device)

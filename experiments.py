@@ -12,6 +12,7 @@ from pathlib import Path
 from inference.bayesian.models import TorchModel, BayesianModel, HorseshoeSSVS
 from inference.inference import inference
 from ESN.utils import run_esn
+from dataset.data_loaders import dataset_for_benchmark
 
 
 config = {
@@ -24,15 +25,25 @@ config = {
             "dropout_p": 0.2,
             "num_chains": 2,
             "num_samples": 8000,
-            "inference": "svi",
+            "inference": "arima",
             "lr": 0.0013272983824139898,
             "num_iterations": 2000,
             "low_rank": True,
             "rank": None,
-            "plot": True,
+            "plot": False,
             "seed": 10,
             "print_results": True,
-            "sweep": True
+            "sweep": True,
+            "esn": False,
+            # config for ARIMA
+            "start_p": 1,
+            "start_q": 1,
+            "max_p": 32,
+            "max_q": 32,
+            "d": 1,
+            "m": 1,
+            "start_P": 0,
+            "D": 1
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
@@ -53,11 +64,17 @@ save_path = './ESN/saved/' + f'{config.dataset}/dim_red_{config.dim_reduction}/'
 Path(save_path).mkdir(parents=True, exist_ok=True) # create folder if it does not exist
 file_path = save_path + f'esn_states_{n_internal_units}units.pt'
 
-if os.path.isfile(file_path):
-    Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
+if config.esn:
+    if os.path.isfile(file_path):
+        Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding = torch.load(file_path, map_location=torch.device(device))
+    else:
+        Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding, _, _ = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
+        torch.save([Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding], file_path)
+    horizon = None
 else:
-    Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding, _, _ = run_esn(config.dataset, device, dim_reduction=config.dim_reduction)
-    torch.save([Ytr, train_embedding, Yval, val_embedding, Yte, test_embedding], file_path)
+    # ARIMA
+    device = torch.device('cpu')
+    train_embedding, Ytr, val_embedding, Yval, test_embedding, Yte, _, _, horizon = dataset_for_benchmark(config.dataset, device)
 
 
 # Quantiles
@@ -81,6 +98,7 @@ grs, effs = [], []
 for s in range(config.seed):
     # Set seed for reproducibility
     pyro.set_rng_seed(s)
+    np.random.seed(s)
 
     pyro.clear_param_store()
 
@@ -92,6 +110,8 @@ for s in range(config.seed):
         model = TorchModel(config.model_widths, config.activation, quantiles=quantiles).to(device)
     elif config.inference == "dropout":
         model = TorchModel(config.model_widths, config.activation, dropout=True, p=config.dropout_p).to(device)
+    elif config.inference == "arima":
+        model = None
     else:
         model = BayesianModel(torch_model, config, device)
 
@@ -109,7 +129,8 @@ for s in range(config.seed):
                                         X_train=train_embedding, Y_train=Ytr, 
                                         X_val=val_embedding, Y_val=Yval,
                                         X_test=test_embedding, Y_test=Yte,
-                                        quantiles=quantiles)
+                                        quantiles=quantiles,
+                                        horizon=horizon)
 
 
     train_times.append(diagnostics['train_time'])
@@ -158,8 +179,6 @@ m_width = np.asarray(widths).mean()
 s_width = np.asarray(widths).std()
 m_new_width = np.asarray(new_widths).mean()
 s_new_width = np.asarray(new_widths).std()
-# m_e_crps = np.asarray(e_crpss).mean()
-# s_e_crps = np.asarray(e_crpss).std()
 m_crps = np.asarray(crpss).mean()
 s_crps = np.asarray(crpss).std()
 m_new_crps = np.asarray(new_crpss).mean()
@@ -182,8 +201,6 @@ wandb.log({"m_train_time": m_time,
            "s_cal_error": s_cal,
            "m_new_cal_error": m_new_cal,
            "s_new_cal_error": s_new_cal,
-        #    "m_e_crps": m_e_crps,
-        #    "s_e_crps": s_e_crps,
            "m_crps": m_crps,
            "s_crps": s_crps,
            "m_new_crps": m_new_crps,
@@ -212,7 +229,6 @@ if config.print_results:
                        "coverage": coverages, "new_coverage": new_coverages,
                        "width": widths, "new_width": new_widths,
                        "MSE": mses, "new_MSE": new_mses,
-                    #    "e_CRPS": e_crpss,
                        "CRPS": crpss, "new_CRPS": new_crpss,
                        "final_loss": losses})
     with pd.ExcelWriter(f"results/results.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
