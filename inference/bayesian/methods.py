@@ -1,6 +1,7 @@
 import torch
 
 import numpy as np
+import lightning.pytorch as pl
 
 from time import process_time
 from pyro import clear_param_store
@@ -9,6 +10,7 @@ from pyro.infer import SVI, Trace_ELBO, Predictive, MCMC, NUTS
 from pyro.ops.stats import autocorrelation
 from pyro.contrib.forecast.evaluate import eval_crps
 from tqdm import trange
+from pytorch_forecasting import DeepAR
 
 from inference.bayesian.utils import check_convergence, acceptance_rate, calibrate, compute_coverage_len, num_eval_crps
 from inference.early_stopping import EarlyStopping
@@ -16,7 +18,7 @@ from inference.early_stopping import EarlyStopping
 
 
 #########################################
-#   Stochastic Variational Inference    #
+#           Variational Inference       #
 #########################################
 
 def train_SVI(model, guide, X, Y, lr=0.03, num_iterations=120):
@@ -102,9 +104,6 @@ def pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, num_samples, plot, swee
     mse = np.mean((median-Y.cpu().numpy())**2)
     diagnostics["new_mse"] = mse
 
-    # # Empirical continuous ranked probability score
-    # e_crps = eval_crps(predictive['obs'], Y.squeeze())
-    # diagnostics["e_crps"] = e_crps
     # Numerical continuous ranked probability score
     tau = np.quantile(predictive["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
     n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())
@@ -407,5 +406,122 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
     diagnostics["new_crps"] = new_n_crps
 
     predictive_dict = {"obs": torch.from_numpy(predictive)}
+
+    return predictive_dict, diagnostics
+
+
+
+#########################################
+#                 DeepAR                #
+#########################################
+
+
+def train_deepAR(model, train_dataloader, val_dataloader, epochs, device):
+
+    accelerator = "gpu" if device == "cuda" else "cpu"
+    
+    early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
+        monitor="val_loss", min_delta=1e-6, patience=20, 
+        verbose=False, mode="min")
+    
+    trainer = pl.Trainer(
+        max_epochs=epochs,
+        accelerator=accelerator,
+        enable_model_summary=True,
+        gradient_clip_val=0.2,
+        callbacks=[early_stop_callback],
+        limit_train_batches=50,
+        enable_checkpointing=True
+    )
+
+    start_time = process_time()
+    trainer.fit(
+        model,
+        train_dataloaders=train_dataloader,
+        val_dataloaders=val_dataloader,
+    )
+    train_time = process_time() - start_time
+
+    best_model_path = trainer.checkpoint_callback.best_model_path
+    best_model = DeepAR.load_from_checkpoint(best_model_path)
+
+    diagnostics = {
+        "train_time": train_time,
+        "final_loss": np.nan
+    }
+
+    return best_model, diagnostics
+    
+
+def pred_deepAR(model, val_dataloader, test_dataloader, num_samples, horizon, plot, sweep, diagnostics, quantiles, device):
+    
+    accelerator = "gpu" if device == "cuda" else "cpu"
+
+    # Use validation set for hyperparameters tuning
+    if sweep:
+        dataloader1 = val_dataloader
+        dataloader2 = test_dataloader
+    else:
+        dataloader1 = test_dataloader
+        dataloader2 = val_dataloader
+    
+    # Perform inference
+    start_time = process_time()
+    predictive = model.predict(val_dataloader, mode="raw", return_x=False, n_samples=num_samples, 
+                               trainer_kwargs=dict(accelerator=accelerator), return_y=True)
+    inference_time = process_time() - start_time
+    diagnostics["inference_time"] = inference_time
+
+    Y = predictive.y[0][0,horizon-1::horizon]
+    predictive = predictive.output["prediction"][:,-1,:].T
+    predictive_dict = {"obs": predictive, "y": Y}
+
+    # Compute calibration error
+    predictive2 = model.predict(dataloader2, mode="raw", return_x=False, n_samples=num_samples, 
+                               trainer_kwargs=dict(accelerator=accelerator), return_y=True)
+    Y2 = predictive2.y[0][0,horizon-1::horizon]
+    predictive2 = predictive2.output["prediction"][:,-1,:].T
+    # Calibrate
+    cal_error, new_cal_error, new_quantiles = calibrate(predictive.cpu().numpy().squeeze(), 
+                                                        predictive2.cpu().numpy().squeeze(), 
+                                                        Y, Y2, quantiles, folder="svi", plot=plot)
+    diagnostics["cal_error"] = cal_error
+    diagnostics["new_cal_error"] = new_cal_error
+    diagnostics["quantiles"] = quantiles
+    diagnostics["new_quantiles"] = new_quantiles
+
+    # Width at 0.95 quantile
+    q_low, q_hi = np.quantile(predictive_dict["obs"].cpu().numpy().squeeze(), [quantiles[2], quantiles[-2]], axis=0) # 40-quantile
+    diagnostics["width"] = np.mean(q_hi - q_low)
+    # After calibration
+    new_q_low, new_q_hi = np.quantile(predictive_dict["obs"].cpu().numpy().squeeze(), [new_quantiles[2], new_quantiles[-2]], axis=0) # 40-quantile
+    diagnostics["new_width"] = np.mean(new_q_hi - new_q_low)
+
+    # Check coverage with 95% quantiles
+    coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), q_low, q_hi)
+    diagnostics["coverage"] = coverage
+    diagnostics["avg_length"] = avg_length
+    # Re-compute after calibration
+    coverage, avg_length = compute_coverage_len(Y.cpu().numpy(), new_q_low, new_q_hi)
+    diagnostics["new_coverage"] = coverage
+    diagnostics["new_avg_length"] = avg_length
+
+    # Mean Squared Error wrt the median
+    median = np.quantile(predictive_dict["obs"].cpu().numpy().squeeze(), quantiles[int(len(quantiles)/2)], axis=0) # median
+    mse = np.mean((median-Y.cpu().numpy())**2)
+    diagnostics["mse"] = mse
+    # After calibration
+    median = np.quantile(predictive_dict["obs"].cpu().numpy().squeeze(), new_quantiles[int(len(new_quantiles)/2)], axis=0) # median
+    mse = np.mean((median-Y.cpu().numpy())**2)
+    diagnostics["new_mse"] = mse
+    
+    # Numerical continuous ranked probability score
+    tau = np.quantile(predictive_dict["obs"].cpu().numpy().squeeze(), quantiles, axis=0)
+    n_crps = num_eval_crps(quantiles, tau, Y.cpu().squeeze().numpy())
+    diagnostics["crps"] = n_crps
+    # Compute CRPS after calibration
+    tau = np.quantile(predictive_dict["obs"].cpu().numpy().squeeze(), new_quantiles, axis=0)
+    new_n_crps = num_eval_crps(new_quantiles, tau, Y.cpu().squeeze().numpy())
+    diagnostics["new_crps"] = new_n_crps
 
     return predictive_dict, diagnostics

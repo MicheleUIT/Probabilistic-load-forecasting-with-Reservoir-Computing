@@ -1,8 +1,8 @@
-from inference.bayesian.methods import train_SVI, pred_SVI, train_MCMC, pred_MCMC, train_DO, pred_DO
+from inference.bayesian.methods import train_SVI, pred_SVI, train_MCMC, pred_MCMC, train_DO, pred_DO, train_deepAR, pred_deepAR
 from inference.frequentist.methods import train_QR, pred_QR, train_ARIMA, pred_ARIMA
 
 
-def inference(config, model, guide, X_train, Y_train, X_val, Y_val, X_test, Y_test, quantiles=None, horizon=None):
+def inference(config, model, guide, X_train, Y_train, X_val, Y_val, X_test, Y_test, quantiles=None, horizon=None, device=None):
     if config.inference == "svi":
         diagnostics = train_SVI(model, guide, X_train, Y_train, config.lr, config.num_iterations)
         predictive, diagnostics = pred_SVI(model, guide, X_val, Y_val, X_test, Y_test, config.num_samples, config.plot, config.sweep, diagnostics, quantiles)
@@ -24,8 +24,13 @@ def inference(config, model, guide, X_train, Y_train, X_val, Y_val, X_test, Y_te
         return predictive, diagnostics
 
     elif config.inference == "arima":
-        model, diagnostics = train_ARIMA(X_train, config.start_p, config.start_q, config.max_p, config.max_q, config.m, config.start_P, config.d, config.D)
+        model, diagnostics = train_ARIMA(X_train, config.start_p, config.start_q, config.max_p, config.max_q, config.d)
         predictive, diagnostics = pred_ARIMA(model, X_val, Y_val, X_test, Y_test, horizon, config.plot, diagnostics, quantiles)
+        return predictive, diagnostics
+
+    elif config.inference == "deepar":
+        model, diagnostics = train_deepAR(model, X_train, X_val, config.num_iterations, device)
+        predictive, diagnostics = pred_deepAR(model, X_val, X_test, config.num_samples, horizon, config.plot, config.sweep, diagnostics, quantiles, device)
         return predictive, diagnostics
 
     else:
