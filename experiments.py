@@ -12,11 +12,13 @@ from pathlib import Path
 from inference.bayesian.models import TorchModel, BayesianModel, HorseshoeSSVS
 from inference.inference import inference
 from ESN.utils import run_esn
-from dataset.data_loaders import dataset_for_benchmark
+from pytorch_forecasting import DeepAR
+from pytorch_forecasting.metrics import NormalDistributionLoss
+from dataset.data_loaders import dataset_for_arima, dataset_for_deepar
 
 
 config = {
-            "dataset": "acea",
+            "dataset": "spain",
             "model_widths": [512,1],
             "activation": "relu",
             "distributions": ["gauss", "unif", "gauss"],
@@ -41,9 +43,11 @@ config = {
             "max_p": 32,
             "max_q": 32,
             "d": 1,
-            "m": 1,
-            "start_P": 0,
-            "D": 1
+            # config for deepAR
+            "hidden_size": 32,
+            "rnn_layers": 2,
+            "encoder": 10,
+            "batch": 64
             }
 
 os.environ["WANDB_MODE"]="online" if config['sweep'] else "offline"
@@ -73,8 +77,15 @@ if config.esn:
     horizon = None
 else:
     # ARIMA
-    device = torch.device('cpu')
-    train_embedding, Ytr, val_embedding, Yval, test_embedding, Yte, _, _, horizon = dataset_for_benchmark(config.dataset, device)
+    if config.inference == "arima":
+        device = torch.device('cpu')
+        train_embedding, Ytr, val_embedding, Yval, test_embedding, Yte, _, _, horizon = dataset_for_arima(config.dataset, device)
+    # DeepAR
+    elif config.inference == "deepar":
+        training, train_embedding, val_embedding, test_embedding, horizon = dataset_for_deepar(config.dataset, config.encoder, config.batch)
+        Ytr, Yval, Yte = None, None, None
+    else:
+        raise ValueError(f"{config.inference} method not implemented.")
 
 
 # Quantiles
@@ -112,6 +123,15 @@ for s in range(config.seed):
         model = TorchModel(config.model_widths, config.activation, dropout=True, p=config.dropout_p).to(device)
     elif config.inference == "arima":
         model = None
+    elif config.inference == "deepar":
+        model = DeepAR.from_dataset(
+            training,
+            learning_rate=config.lr,
+            hidden_size=config.hidden_size,
+            rnn_layers=config.rnn_layers,
+            loss=NormalDistributionLoss(),
+            optimizer="Adam",
+        )
     else:
         model = BayesianModel(torch_model, config, device)
 
@@ -130,7 +150,8 @@ for s in range(config.seed):
                                         X_val=val_embedding, Y_val=Yval,
                                         X_test=test_embedding, Y_test=Yte,
                                         quantiles=quantiles,
-                                        horizon=horizon)
+                                        horizon=horizon,
+                                        device=device)
 
 
     train_times.append(diagnostics['train_time'])
