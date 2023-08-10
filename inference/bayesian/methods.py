@@ -11,6 +11,7 @@ from pyro.ops.stats import autocorrelation
 from pyro.contrib.forecast.evaluate import eval_crps
 from tqdm import trange
 from pytorch_forecasting import DeepAR
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from inference.bayesian.utils import check_convergence, acceptance_rate, calibrate, compute_coverage_len, num_eval_crps
 from inference.early_stopping import EarlyStopping
@@ -424,6 +425,8 @@ def train_deepAR(model, train_dataloader, val_dataloader, epochs, device):
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
         monitor="val_loss", min_delta=1e-6, patience=20, 
         verbose=False, mode="min")
+ 
+    logger = TensorBoardLogger("logs", "DeepAR")   
     
     trainer = pl.Trainer(
         max_epochs=epochs,
@@ -432,7 +435,8 @@ def train_deepAR(model, train_dataloader, val_dataloader, epochs, device):
         gradient_clip_val=0.2,
         callbacks=[early_stop_callback],
         limit_train_batches=50,
-        enable_checkpointing=True
+        enable_checkpointing=True,  
+        logger=logger
     )
 
     start_time = process_time()

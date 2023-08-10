@@ -12,3 +12,4 @@ code/ESN/saved/
 *.txt
 checkpoints/
 lightning_logs/
+logs/
