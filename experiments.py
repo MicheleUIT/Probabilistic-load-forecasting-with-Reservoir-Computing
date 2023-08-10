@@ -3,6 +3,7 @@ import torch
 import wandb
 import os
 import json
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -16,9 +17,10 @@ from pytorch_forecasting import DeepAR
 from pytorch_forecasting.metrics import NormalDistributionLoss
 from dataset.data_loaders import dataset_for_arima, dataset_for_deepar
 
+warnings.simplefilter("ignore", UserWarning)
 
 config = {
-            "dataset": "spain",
+            "dataset": "acea",
             "model_widths": [512,1],
             "activation": "relu",
             "distributions": ["gauss", "unif", "gauss"],
@@ -27,8 +29,8 @@ config = {
             "dropout_p": 0.2,
             "num_chains": 2,
             "num_samples": 8000,
-            "inference": "arima",
-            "lr": 0.0013272983824139898,
+            "inference": "deepar",
+            "lr": 0.03,
             "num_iterations": 2000,
             "low_rank": True,
             "rank": None,
@@ -55,7 +57,7 @@ wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
 # Select one GPU if more are available
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]='1'
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
