@@ -418,7 +418,8 @@ def pred_DO(model, X_val, Y_val, X_test, Y_test, num_samples, plot, sweep, diagn
 
 def train_deepAR(model, train_dataloader, val_dataloader, epochs, device):
 
-    accelerator = "gpu" if device == "cuda" else "cpu"
+    accelerator = "cuda" if device == "cuda" else "cpu"
+    model = model.to(device)
     
     early_stop_callback = pl.callbacks.early_stopping.EarlyStopping(
         monitor="val_loss", min_delta=1e-6, patience=20, 
@@ -455,7 +456,8 @@ def train_deepAR(model, train_dataloader, val_dataloader, epochs, device):
 
 def pred_deepAR(model, val_dataloader, test_dataloader, num_samples, horizon, plot, sweep, diagnostics, quantiles, device):
     
-    accelerator = "gpu" if device == "cuda" else "cpu"
+    accelerator = "cuda" if device == "cuda" else "cpu"
+    model = model.to(device)
 
     # Use validation set for hyperparameters tuning
     if sweep:
@@ -484,7 +486,7 @@ def pred_deepAR(model, val_dataloader, test_dataloader, num_samples, horizon, pl
     # Calibrate
     cal_error, new_cal_error, new_quantiles = calibrate(predictive.cpu().numpy().squeeze(), 
                                                         predictive2.cpu().numpy().squeeze(), 
-                                                        Y, Y2, quantiles, folder="svi", plot=plot)
+                                                        Y, Y2, quantiles, folder="deepar", plot=plot)
     diagnostics["cal_error"] = cal_error
     diagnostics["new_cal_error"] = new_cal_error
     diagnostics["quantiles"] = quantiles
