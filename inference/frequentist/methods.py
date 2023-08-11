@@ -138,7 +138,7 @@ def quantile_loss(quantiles, output, target):
 #####################################
 
 
-def train_ARIMA(X, start_p=1, start_q=1, max_p=4, max_q=4, m=1, start_P=0, d=1, D=1):
+def train_ARIMA(X, start_p=1, start_q=1, max_p=4, max_q=4, d=1):
 
     start_time = process_time()
 
@@ -146,10 +146,9 @@ def train_ARIMA(X, start_p=1, start_q=1, max_p=4, max_q=4, m=1, start_P=0, d=1, 
     arima_model = pmdarima.auto_arima(
         y=X,
         start_p=start_p, start_q=start_q,
-        max_p=max_p, max_q=max_q, m=m,
-        start_P=start_P,
-        seasonal=False,         # seasonality already removed in pre-processing
-        d=d, D=D,
+        max_p=max_p, max_q=max_q, 
+        m=1, seasonal=False,    # seasonality already removed in pre-processing
+        d=d,
         trace=False,            # no debug info
         error_action='ignore',  # don't want to know if an order does not work
         suppress_warnings=True, # don't want convergence warnings
@@ -173,11 +172,14 @@ def pred_ARIMA(model, X_val, Y_val, X_test, Y_test, horizon, plot, diagnostics, 
 
     start_time = process_time()
 
+    X = torch.cat([X_val, X_test])
+
     for q1, q2 in zip(quantiles[1:len(quantiles)//2], quantiles[::-1]):
         pred_list, ci_list = [], []
-        with trange(X_val.shape[0] + X_test.shape[0], desc = "CI {0:.2f}".format(q2-q1)) as t:
+        with trange(X.shape[0], desc = "CI {0:.2f}".format(q2-q1)) as t:
             for step in t:
                 y_hat, conf_int = model.predict(n_periods=horizon, return_conf_int=True, alpha=q2-q1)
+                model.update(X[step].unsqueeze(-1))
                 pred_list.append(y_hat[-1])
                 ci_list.append(conf_int[-1,:])
         
