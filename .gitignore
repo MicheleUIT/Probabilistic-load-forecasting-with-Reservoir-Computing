@@ -12,7 +12,3 @@ ESN/saved/
 checkpoints/
 lightning_logs/
 logs/
-*sweep*
-arc*
-time_series_forecast.ipynb
-tutorials/
