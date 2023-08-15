@@ -70,9 +70,7 @@ class BayesianModel(PyroModule):
 
         # with pyro.plate("data", size=x.shape[0], subsample_size=50, device=self.device) as ind:
         with pyro.plate("data", device=self.device):
-            obs = pyro.sample("obs", self.distributions[-1](mean, sigma),
-                            #   obs=y.index_select(0, ind) if y != None else y).to(self.device)
-                              obs=y).to(self.device)
+            obs = pyro.sample("obs", self.distributions[-1](mean, sigma), obs=y).to(self.device)
         return mean
 
     
@@ -116,15 +114,6 @@ class BayesianModel(PyroModule):
                 else:
                     distributions.append(dist.Laplace(torch.tensor(float(p[0]), device=self.device),
                                                     torch.tensor(float(p[1]), device=self.device))) # >0
-                    
-            elif distr_list[i] == "bern":
-                try:
-                    p = param_list[i]
-                except:
-                    raise ValueError(f"Missing parameter for distribution {i} ({distr_list[i]}).")
-                else:
-                    distributions.append(dist.RelaxedBernoulli(torch.tensor(float(p[1]), device=self.device), # >0
-                                                               torch.tensor(float(p[0]), device=self.device)))
                     
             else:
                 raise ValueError(f"{distr_list[i]['name']} prior distribution not defined.")
@@ -173,36 +162,6 @@ class BayesianLinear_t(PyroModule):
         return self.linear(x)
 
 
-class BernoulliSSVS(PyroModule):
-    """
-    SSVS implemented with a relaxed Bernoulli
-
-    :param type: string to choose linear layer type
-    """
-    def __init__(self, in_features, out_features, type, device):
-        super().__init__()
-
-        self.device = device
-
-        # TODO: what is the difference between these two linear layers?
-        BL = BayesianLinear_m if type=='m' else BayesianLinear_t
-
-        self.linear1 = BL(in_features, out_features, self.device)
-        self.linear2 = BL(in_features, out_features, self.device, 0.001)
-
-        # FIXME: add activation function
-
-    def forward(self, x, y=None):
-        gamma = pyro.sample("gamma", dist.RelaxedBernoulli(0)).to(self.device) # FIXME: fix the relaxed Bernoulli
-
-        sigma = pyro.sample("sigma", dist.Uniform(0., 10.)).to(self.device)
-        mean = (self.linear1(x)*gamma + self.linear2(x)*(1-gamma)).squeeze(-1)
-
-        with pyro.plate("data", x.shape[0], device=self.device):
-            obs = pyro.sample("obs", dist.Normal(mean, sigma), obs=y)
-        return mean
-
-
 class HorseshoeSSVS(PyroModule):
     """
     SSVS implemented with an horseshoe continuous RV
@@ -232,41 +191,3 @@ class HorseshoeSSVS(PyroModule):
             obs = pyro.sample("obs", dist.Normal(mean, sigma), obs=y)
 
         return mean
-
-
-
-### TODO: Define a full custom guide
-
-# # should I define a full custom guide?
-# # when defining the guide, put constraints on variances
-# class BayesianGuide(PyroModule):
-#     def __init__(self, torch_model, config, device):
-#         super().__init__()
-
-#         self.device = device
-#         self.config = config
-#         self.model = torch_model
-
-#         self.distributions = self.get_priors()
-        
-#         self.torch2pyro()
-
-
-#     def forward(self, x, y=None):
-#         mean = self.model(x).squeeze(-1)
-
-#         sigma = pyro.sample("sigma", self.distributions[-2]).to(self.device)
-
-#         return mean
-
-    
-#     def torch2pyro(self):
-#         pyro.nn.module.to_pyro_module_(self.model)
-
-#         for m in self.model.modules():
-#             for name, value in list(m.named_parameters(recurse=False)):
-#                 setattr(m, name, PyroSample(self.distributions[0].expand(value.shape).to_event(value.dim())))
-
-
-#     def render_model(self, model_args):
-#         return pyro.render_model(self, model_args, render_distributions=True, filename="guide.png")
