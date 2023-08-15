@@ -473,7 +473,7 @@ def pred_deepAR(model, val_dataloader, test_dataloader, num_samples, horizon, pl
     
     # Perform inference
     start_time = process_time()
-    predictive = model.predict(val_dataloader, mode="raw", return_x=False, n_samples=num_samples, 
+    predictive = model.predict(dataloader1, mode="raw", return_x=False, n_samples=num_samples, 
                                trainer_kwargs=dict(accelerator=accelerator), return_y=True)
     inference_time = process_time() - start_time
     diagnostics["inference_time"] = inference_time
