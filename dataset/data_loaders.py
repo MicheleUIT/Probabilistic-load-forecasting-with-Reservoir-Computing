@@ -130,26 +130,32 @@ def dataset_for_arima(name, device):
     return Xtr, Ytr, Xval, Yval, Xte, Yte, diffXte, diffYte, F
 
 
-def dataset_for_deepar(name, max_encoder_length = 10, batch_size = 64):
+def dataset_for_deepar(name, max_encoder_length = 10, batch_size = 64, scaler = StandardScaler):
     """
     Load dataset to use with DeepAR
     """
 
     data, L, F = load_dataset(name)
 
+    test_percent = 0.15
+    val_percent = 0.15
+
+    n_data = data.shape[0]
+    n_te = int(np.ceil(test_percent*n_data))
+    n_val = int(np.ceil(val_percent*n_data))
+    n_tr = n_data - n_te - n_val
+
+    # Scale
+    Xscaler = scaler()
+    Xtr = data[:n_tr].reshape(-1,1)
+    Xtr = Xscaler.fit_transform(Xtr)
+    data = Xscaler.transform(data.reshape(-1,1)).squeeze()
+
     data = pd.DataFrame(data, columns = ['power'])
     data['time_idx'] = [i for i in range(len(data))]    # time index variable
     data['group'] = ['0' for i in range(len(data))]     # needed for univariate time series
 
     # Create validation and test dataset
-    test_percent = 0.15
-    val_percent = 0.15
-
-    n_data = data["time_idx"].max()
-    n_te = int(np.ceil(test_percent*n_data))
-    n_val = int(np.ceil(val_percent*n_data))
-    n_tr = n_data - n_te - n_val
-
     max_prediction_length = F
     training_cutoff = n_tr
     validation_cutoff = n_tr + n_val
