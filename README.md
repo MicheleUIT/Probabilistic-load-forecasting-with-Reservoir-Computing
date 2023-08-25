@@ -14,7 +14,7 @@ While the RC literature mostly focused on point forecasting, this work explores 
 
 Before using this repository, you should first install all needed libraries with conda
 ```
-conda env create -f environment.yml
+conda env create -f conda_environment.yml
 ```
 
 ## How to use
@@ -26,5 +26,12 @@ Otherwise, to play around and visualise all the different methods, you can work 
 
 If you use this work in your research, please cite
 ```
-
+@misc{guerra2023probabilistic,
+      title={Probabilistic load forecasting with Reservoir Computing}, 
+      author={Michele Guerra and Simone Scardapane and Filippo Maria Bianchi},
+      year={2023},
+      eprint={2308.12844},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
 ```
