@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import scipy
 
 from statsmodels.stats.libqsturng import  psturng
 
@@ -28,9 +29,9 @@ def perform_games_howell_test(m, s):
 
     for i in range(n):
         for j in range(n):
-            sigma[i,j] = np.sqrt(s[i]**2 + s[j]**2) / np.sqrt(2*n)
+            sigma[i,j] = np.sqrt(s[i]**2 + s[j]**2) / np.sqrt(n)
             # Degrees of freedom with Welch's correction
-            deg_f[i,j] = (n-1)*(s[i]**2 + s[j]**2)**2/(s[i]**4 + s[j]**4)
+            deg_f[i,j] = np.ceil((n-1)*(s[i]**2 + s[j]**2)**2/(s[i]**4 + s[j]**4))
             # t-value
             t_value = np.abs(m[i] - m[j]) / sigma[i,j]
             # p-value from the studentized range distribution
@@ -41,11 +42,23 @@ def perform_games_howell_test(m, s):
     fig, ax = plt.subplots(figsize=(10, 10))  # Set the figsize to your desired size
     im = ax.imshow(p_value, cmap='coolwarm')
 
-    # Set color scales for values below 1 and above 1
-    im.set_clim(vmin=0, vmax=2)  # Color scale for values below 1 and above 1
-    cbar = ax.figure.colorbar(im, ax=ax, extend='both')  # Add colorbar for values below 1 and above 1
-    cbar.set_ticks([0, 1, 2])  # Set colorbar ticks
-    cbar.set_ticklabels(['< 1', '1', '> 1'])  # Set colorbar tick labels
+    # Set color scales for values below 0.05 and above 0.05
+    im.set_clim(vmin=0, vmax=1)  # Color scale for values below 0.05 and above 0.05
+    im.set_cmap('coolwarm')  # Set colormap to coolwarm
+
+    # Highlight values not equal to 0
+    for i in range(n):
+        for j in range(n):
+            if i >= j:
+                p_value[i, j] = np.nan
+            else:
+                ax.text(j, i, f'{p_value[i, j]:.2f}', ha='center', va='center', color='white', fontweight='bold')
+
+    # Color pixels with values above 0.05 red and below 0.05 blue
+    im.set_clim(vmin=0, vmax=1)  # Color scale for values below 0.05 and above 0.05
+    im.set_cmap('coolwarm')  # Set colormap to coolwarm
+    im.set_norm(matplotlib.colors.Normalize(vmin=0, vmax=1, clip=True))
+    im.set_array(np.where(np.isnan(p_value), np.nan, np.where(p_value > 0.05, 1, 0)))
 
     # Set ticks as text
     labels = ['SVI', 'Dropout', 'MCMC', 'MCMC+PCA', 'SSVS', 'QR']
@@ -54,15 +67,27 @@ def perform_games_howell_test(m, s):
     ax.set_xticklabels(labels, rotation=45, ha='right')  # Set rotation angle and alignment
     ax.set_yticklabels(labels, rotation=45, ha='right')
 
-    # Highlight values not equal to 0
-    for i in range(n):
-        for j in range(n):
-            ax.text(j, i, f'{p_value[i, j]:.2f}', ha='center', va='center', color='white', fontweight='bold')
-
-    print(p_value)
     plt.show()
 
 
+def perform_welch_anova_test(m, s):
+    w = 10 / s**2
+    mean_w = (w*m).sum() / w.sum()
+    sstr_w = (w * (m - mean_w)**2).sum()
+    mstr_w = sstr_w / (len(m) - 1)
+    lambda_w = ((1 - w/w.sum())**2).sum() / (3*(6**2-1))
+
+    F_w = mstr_w / (1 + (2*lambda_w*4)/3)
+
+    p_value = scipy.stats.f.cdf(F_w, 5, np.ceil(1/lambda_w))
+
+    print(p_value)
+
+
+perform_welch_anova_test(means_acea, stds_acea)
+perform_games_howell_test(means_acea, stds_acea)
+
+perform_welch_anova_test(means_spain, stds_spain)
 perform_games_howell_test(means_spain, stds_spain)
 
 
