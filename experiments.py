@@ -21,24 +21,24 @@ warnings.simplefilter("ignore", UserWarning)
 
 config = {
             "dataset": "acea",
-            "model_widths": [512,1],
+            "model_widths": [512,256,1],
             "activation": "relu",
             "distributions": ["gauss", "unif", "gauss"],
-            "parameters": [[0,1],[0,1]],
+            "parameters": [[0,1],[0,10]],
             "dim_reduction": False,
-            "dropout_p": 0.2,
+            "dropout_p": 0.1196646368538442,
             "num_chains": 2,
             "num_samples": 8000,
-            "inference": "deepar",
-            "lr": 0.03,
-            "num_iterations": 2000,
-            "low_rank": True,
+            "inference": "dropout",
+            "lr": 0.006799498988837891,
+            "num_iterations": 500,
+            "low_rank": False,
             "rank": None,
             "plot": False,
             "seed": 10,
             "print_results": True,
             "sweep": True,
-            "esn": False,
+            "esn": True,
             # config for ARIMA
             "start_p": 1,
             "start_q": 1,
@@ -57,7 +57,7 @@ wandb.init(project="bayes_rc", config=config)
 config = wandb.config
 
 # Select one GPU if more are available
-os.environ["CUDA_VISIBLE_DEVICES"]='1'
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -112,6 +112,8 @@ for s in range(config.seed):
     # Set seed for reproducibility
     pyro.set_rng_seed(s)
     np.random.seed(s)
+    torch.manual_seed(s)
+
 
     pyro.clear_param_store()
 
