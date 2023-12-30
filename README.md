@@ -1,4 +1,4 @@
-# Probabilistic load forecasting with Reservoir Computing
+# [Probabilistic load forecasting with Reservoir Computing](https://ieeexplore.ieee.org/abstract/document/10360823)
 
 This repository contains the code used for the paper **Probabilistic load forecasting with Reservoir Computing**.
 
@@ -26,12 +26,13 @@ Otherwise, to play around and visualise all the different methods, you can work 
 
 If you use this work in your research, please cite
 ```
-@misc{guerra2023probabilistic,
-      title={Probabilistic load forecasting with Reservoir Computing}, 
-      author={Michele Guerra and Simone Scardapane and Filippo Maria Bianchi},
-      year={2023},
-      eprint={2308.12844},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
-}
+@ARTICLE{10360823,
+  author={Guerra, Michele and Scardapane, Simone and Bianchi, Filippo Maria},
+  journal={IEEE Access}, 
+  title={Probabilistic Load Forecasting With Reservoir Computing}, 
+  year={2023},
+  volume={11},
+  number={},
+  pages={145989-146002},
+  doi={10.1109/ACCESS.2023.3343467}}
 ```
